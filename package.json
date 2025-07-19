@@ -1,0 +1,27 @@
+{
+  "name": "yna-nexus-api",
+  "version": "1.0.0",
+  "description": "Your Nexus Archive (YNA)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint src/**/*.js",
+    "start": "node ./src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [],
+  "author": "Yuriy Nabasov (YNA) <nabasoff@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0",
+    "nodemon": "^3.1.10",
+    "pino-pretty": "^13.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pino-http": "^10.5.0"
+  }
+}
