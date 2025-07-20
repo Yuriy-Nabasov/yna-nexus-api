@@ -7,23 +7,33 @@ export const getAllStamps = async ({
   perPage = 12,
   sortOrder = SORT_ORDER.ASC,
   sortBy = '_id',
+  filter = {},
 }) => {
   const limit = perPage;
   const skip = (page - 1) * perPage;
 
-  // const stamps = await StampsCollection.find();
-  // return stamps;
-
   const stampsQuery = StampsCollection.find();
-  const stampsCount = await StampsCollection.find()
-    .merge(stampsQuery)
-    .countDocuments();
 
-  const stamps = await stampsQuery
-    .skip(skip)
-    .limit(limit)
-    .sort({ [sortBy]: sortOrder })
-    .exec();
+  if (filter.year) {
+    stampsQuery.where('year').equals(filter.year);
+  }
+
+  if (filter.circulation) {
+    stampsQuery.where('circulation').equals(filter.circulation);
+  }
+
+  if (filter.price) {
+    stampsQuery.where('price').equals(filter.price);
+  }
+
+  const [stampsCount, stamps] = await Promise.all([
+    StampsCollection.find().merge(stampsQuery).countDocuments(),
+    stampsQuery
+      .skip(skip)
+      .limit(limit)
+      .sort({ [sortBy]: sortOrder })
+      .exec(),
+  ]);
 
   const paginationData = calculatePaginationData(stampsCount, perPage, page);
 
