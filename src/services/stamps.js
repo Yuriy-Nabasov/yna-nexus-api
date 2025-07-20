@@ -1,7 +1,13 @@
 import { StampsCollection } from '../db/models/stamp.js';
 import { calculatePaginationData } from '../utils/calculatePaginationData.js';
+import { SORT_ORDER } from '../constants/index.js';
 
-export const getAllStamps = async ({ page, perPage }) => {
+export const getAllStamps = async ({
+  page = 1,
+  perPage = 12,
+  sortOrder = SORT_ORDER.ASC,
+  sortBy = '_id',
+}) => {
   const limit = perPage;
   const skip = (page - 1) * perPage;
 
@@ -13,7 +19,11 @@ export const getAllStamps = async ({ page, perPage }) => {
     .merge(stampsQuery)
     .countDocuments();
 
-  const stamps = await stampsQuery.skip(skip).limit(limit).exec();
+  const stamps = await stampsQuery
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sortOrder })
+    .exec();
 
   const paginationData = calculatePaginationData(stampsCount, perPage, page);
 
