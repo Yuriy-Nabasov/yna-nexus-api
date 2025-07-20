@@ -14,33 +14,27 @@ import { isValidId } from '../middlewares/isValidId.js';
 
 const router = Router();
 
-router.get('/stamps', ctrlWrapper(getStampsController));
+router.get('/', ctrlWrapper(getStampsController));
 
-router.get('/stamps/:stampId', isValidId, ctrlWrapper(getStampByIdController));
-
-// router.post('/stamps', ctrlWrapper(createStampController));
+router.get('/:stampId', isValidId, ctrlWrapper(getStampByIdController));
 
 router.post(
-  '/stamps',
+  '/',
   validateBody(createStampSchema),
   ctrlWrapper(createStampController),
 );
 
-router.delete(
-  '/stamps/:stampId',
-  isValidId,
-  ctrlWrapper(deleteStampController),
-);
+router.delete('/:stampId', isValidId, ctrlWrapper(deleteStampController));
 
 router.put(
-  '/stamps/:stampId',
+  '/:stampId',
   isValidId,
   validateBody(createStampSchema),
   ctrlWrapper(upsertStampController),
 );
 
 router.patch(
-  '/stamps/:stampId',
+  '/:stampId',
   isValidId,
   validateBody(updateStampSchema),
   ctrlWrapper(patchStampController),

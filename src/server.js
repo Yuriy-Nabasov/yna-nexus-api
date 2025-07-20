@@ -2,7 +2,8 @@ import express from 'express';
 import pino from 'pino-http';
 import cors from 'cors';
 import { getEnvVar } from './utils/getEnvVar.js';
-import stampsRouter from './routers/stamps.js';
+// import stampsRouter from './routers/stamps.js';
+import router from './routers/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 
@@ -26,7 +27,8 @@ export const startServer = () => {
     res.json({ message: 'Hello YNA! Your Nexus Archive API is running.' });
   });
 
-  app.use(stampsRouter);
+  // app.use(stampsRouter);
+  app.use(router);
 
   app.use(notFoundHandler);
 
