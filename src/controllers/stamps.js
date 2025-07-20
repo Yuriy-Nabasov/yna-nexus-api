@@ -6,9 +6,11 @@ import {
   updateStamp,
 } from '../services/stamps.js';
 import createHttpError from 'http-errors';
+import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 
 export const getStampsController = async (req, res, next) => {
-  const stamps = await getAllStamps();
+  const { page, perPage } = parsePaginationParams(req.query);
+  const stamps = await getAllStamps({ page, perPage });
   res.json({
     status: 200,
     message: 'Successfully found stamps!',
