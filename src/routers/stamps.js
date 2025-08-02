@@ -1,3 +1,5 @@
+// src/routers/stamps.js
+
 import { Router } from 'express';
 import {
   getStampsController,

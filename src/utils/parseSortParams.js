@@ -1,3 +1,5 @@
+// src/utils/parseSortParams.js
+
 import { SORT_ORDER } from '../constants/index.js';
 
 const parseSortOrder = (sortOrder) => {

@@ -1,3 +1,5 @@
+// src/db/initMongoDB.js
+
 import mongoose from 'mongoose';
 import { getEnvVar } from '../utils/getEnvVar.js';
 

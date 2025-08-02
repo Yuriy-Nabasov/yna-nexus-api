@@ -1,3 +1,5 @@
+// src/validation/stamps.js
+
 import Joi from 'joi';
 
 // Функція для отримання максимального року (поточний рік + запас)

@@ -1,3 +1,5 @@
+// src/utils/parseFilterParams.js
+
 const parseNumber = (number) => {
   // Перевіряємо, чи є вхідне значення рядком і чи не порожній він
   if (typeof number !== 'string' || number.trim() === '') {

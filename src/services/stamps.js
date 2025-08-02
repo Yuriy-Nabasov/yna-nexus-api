@@ -1,3 +1,5 @@
+// src/services/stamps.js
+
 import { StampsCollection } from '../db/models/stamp.js';
 import { calculatePaginationData } from '../utils/calculatePaginationData.js';
 import { SORT_ORDER } from '../constants/index.js';

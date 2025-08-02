@@ -1,4 +1,5 @@
 // src/db/models/user.js
+
 import { model, Schema } from 'mongoose';
 
 const usersSchema = new Schema(

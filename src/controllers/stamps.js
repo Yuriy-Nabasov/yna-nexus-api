@@ -1,3 +1,5 @@
+// src/controllers/stamps.js
+
 import {
   getAllStamps,
   getStampById,

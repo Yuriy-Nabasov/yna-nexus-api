@@ -1,3 +1,5 @@
+// src/db/models/stamp.js
+
 import { model, Schema } from 'mongoose';
 
 const stampSchema = new Schema(
