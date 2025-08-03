@@ -71,3 +71,7 @@ export const resetPasswordSchema = Joi.object({
   abortEarly: false,
   stripUnknown: true,
 });
+
+export const loginWithGoogleOAuthSchema = Joi.object({
+  code: Joi.string().required(),
+});
