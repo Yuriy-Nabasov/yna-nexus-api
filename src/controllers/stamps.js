@@ -51,8 +51,27 @@ export const getStampByIdController = async (req, res, next) => {
   });
 };
 
-export const createStampController = async (req, res) => {
-  const stamp = await createStamp(req.body);
+export const createStampController = async (req, res, next) => {
+  const picture = req.file;
+  let pictureUrl;
+
+  // ОБОВ'ЯЗКОВО! перевірити, чи картинка взагалі є
+  if (!picture) {
+    return next(
+      createHttpError(400, 'Picture is required for creating a stamp.'),
+    );
+  }
+
+  if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+    pictureUrl = await saveFileToCloudinary(picture);
+  } else {
+    pictureUrl = await saveFileToUploadDir(picture);
+  }
+
+  const stamp = await createStamp({
+    ...req.body,
+    picture: pictureUrl, // Передаємо URL картинки до сервісу
+  });
 
   res.status(201).json({
     status: 201,
@@ -76,7 +95,31 @@ export const deleteStampController = async (req, res, next) => {
 export const upsertStampController = async (req, res, next) => {
   const { stampId } = req.params;
 
-  const result = await updateStamp(stampId, req.body, {
+  const picture = req.file;
+  let pictureUrl;
+
+  // ОБОВ'ЯЗКОВО! перевірити, чи картинка є, якщо це upsert
+  if (picture) {
+    // Якщо картинка є, завантажуємо її
+    if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+      pictureUrl = await saveFileToCloudinary(picture);
+    } else {
+      pictureUrl = await saveFileToUploadDir(picture);
+    }
+  }
+
+  const payload = { ...req.body };
+  if (pictureUrl) {
+    // Додаємо pictureUrl до payload, тільки якщо вона була завантажена
+    payload.picture = pictureUrl;
+  }
+
+  // const result = await updateStamp(stampId, req.body, {
+  //   upsert: true,
+  // });
+
+  const result = await updateStamp(stampId, payload, {
+    // Передаємо payload
     upsert: true,
   });
 
@@ -96,7 +139,7 @@ export const upsertStampController = async (req, res, next) => {
 
 export const patchStampController = async (req, res, next) => {
   const { stampId } = req.params;
-  const picture = req.file; // picture
+  const picture = req.file;
   let pictureUrl;
 
   if (picture) {
@@ -107,10 +150,16 @@ export const patchStampController = async (req, res, next) => {
     }
   }
 
-  const result = await updateStamp(stampId, {
-    ...req.body,
-    picture: pictureUrl,
-  });
+  const payload = { ...req.body };
+  if (pictureUrl) {
+    // Додаємо pictureUrl до payload, тільки якщо вона була завантажена
+    payload.picture = pictureUrl;
+  } else if (picture === null) {
+    // Якщо клієнт явно відправив "null" для видалення картинки (це залежить від того, як ви це обробляєте на фронтенді)
+    payload.picture = null; // Встановлюємо картинку в null, якщо потрібно видалити
+  }
+
+  const result = await updateStamp(stampId, payload);
 
   if (!result) {
     next(createHttpError(404, 'Stamp not found'));

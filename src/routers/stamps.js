@@ -29,7 +29,7 @@ router.post(
   '/',
   authenticate,
   checkRoles(ROLES.ADMIN),
-  upload.single('picture'), // picture
+  upload.single('picture'),
   validateBody(createStampSchema),
   ctrlWrapper(createStampController),
 );
@@ -46,7 +46,7 @@ router.put(
   '/:stampId',
   authenticate,
   checkRoles(ROLES.ADMIN),
-  upload.single('picture'), // picture
+  upload.single('picture'),
   isValidId,
   validateBody(createStampSchema),
   ctrlWrapper(upsertStampController),
@@ -56,7 +56,7 @@ router.patch(
   '/:stampId',
   authenticate,
   checkRoles(ROLES.ADMIN),
-  upload.single('picture'), // picture
+  upload.single('picture'),
   isValidId,
   validateBody(updateStampSchema),
   ctrlWrapper(patchStampController),
