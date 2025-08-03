@@ -40,7 +40,7 @@ router.post('/logout', ctrlWrapper(logoutUserController));
 router.post('/refresh', ctrlWrapper(refreshUserSessionController));
 
 router.post(
-  '/request-reset-email',
+  '/request-reset-password',
   validateBody(requestResetPasswordSchema),
   ctrlWrapper(requestResetPasswordController),
 );

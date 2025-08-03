@@ -189,7 +189,15 @@ export const resetPassword = async (payload) => {
 export const loginOrSignupWithGoogle = async (code) => {
   const loginTicket = await validateCode(code);
   const payload = loginTicket.getPayload();
-  if (!payload) throw createHttpError(401);
+  if (!payload) throw createHttpError(401, 'Google OAuth payload missing.');
+
+  // Перевірка, чи Google надає email
+  if (!payload.email) {
+    throw createHttpError(
+      400,
+      'Google account does not provide an email address.',
+    );
+  }
 
   let user = await UsersCollection.findOne({ email: payload.email });
   if (!user) {
@@ -198,10 +206,12 @@ export const loginOrSignupWithGoogle = async (code) => {
       email: payload.email,
       name: getFullNameFromGoogleTokenPayload(payload),
       password,
-      role: 'parent',
+      role: 'user',
     });
   }
 
+  // Видаляємо всі попередні сесії для цього користувача, щоб забезпечити чисту сесію
+  await SessionsCollection.deleteMany({ userId: user._id });
   const newSession = createSession();
 
   return await SessionsCollection.create({

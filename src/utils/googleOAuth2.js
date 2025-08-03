@@ -31,6 +31,7 @@ export const validateCode = async (code) => {
 
   const ticket = await googleOAuthClient.verifyIdToken({
     idToken: response.tokens.id_token,
+    audience: getEnvVar('GOOGLE_AUTH_CLIENT_ID'),
   });
   return ticket;
 };
@@ -41,11 +42,9 @@ export const getFullNameFromGoogleTokenPayload = (payload) => {
     fullName = `${payload.given_name} ${payload.family_name}`;
   } else if (payload.given_name) {
     fullName = payload.given_name;
+  } else if (payload.name) {
+    fullName = payload.name;
   }
-  // Можливо, додати обробку `name` (повне ім'я), якщо воно присутнє і краще для відображення
-  // else if (payload.name) {
-  //   fullName = payload.name;
-  // }
 
   return fullName;
 };
