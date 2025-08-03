@@ -11,6 +11,9 @@ import createHttpError from 'http-errors';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/parseFilterParams.js';
+import { saveFileToUploadDir } from '../utils/saveFileToUploadDir.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
+import { getEnvVar } from '../utils/getEnvVar.js';
 
 export const getStampsController = async (req, res, next) => {
   const { page, perPage } = parsePaginationParams(req.query);
@@ -93,7 +96,21 @@ export const upsertStampController = async (req, res, next) => {
 
 export const patchStampController = async (req, res, next) => {
   const { stampId } = req.params;
-  const result = await updateStamp(stampId, req.body);
+  const picture = req.file; // picture
+  let pictureUrl;
+
+  if (picture) {
+    if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+      pictureUrl = await saveFileToCloudinary(picture);
+    } else {
+      pictureUrl = await saveFileToUploadDir(picture);
+    }
+  }
+
+  const result = await updateStamp(stampId, {
+    ...req.body,
+    picture: pictureUrl,
+  });
 
   if (!result) {
     next(createHttpError(404, 'Stamp not found'));

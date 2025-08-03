@@ -17,6 +17,7 @@ import { authenticate } from '../middlewares/authenticate.js';
 
 import { checkRoles } from '../middlewares/checkRoles.js';
 import { ROLES } from '../constants/index.js';
+import { upload } from '../middlewares/multer.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.post(
   '/',
   authenticate,
   checkRoles(ROLES.ADMIN),
+  upload.single('picture'), // picture
   validateBody(createStampSchema),
   ctrlWrapper(createStampController),
 );
@@ -44,6 +46,7 @@ router.put(
   '/:stampId',
   authenticate,
   checkRoles(ROLES.ADMIN),
+  upload.single('picture'), // picture
   isValidId,
   validateBody(createStampSchema),
   ctrlWrapper(upsertStampController),
@@ -53,6 +56,7 @@ router.patch(
   '/:stampId',
   authenticate,
   checkRoles(ROLES.ADMIN),
+  upload.single('picture'), // picture
   isValidId,
   validateBody(updateStampSchema),
   ctrlWrapper(patchStampController),
