@@ -1,6 +1,7 @@
 // src/db/models/user.js
 
 import { model, Schema } from 'mongoose';
+import { ROLES } from '../../constants/index.js';
 
 const usersSchema = new Schema(
   {
@@ -10,6 +11,11 @@ const usersSchema = new Schema(
     collectedStamps: {
       type: [{ type: Schema.Types.ObjectId, ref: 'stamps' }],
       default: [],
+    },
+    role: {
+      type: String,
+      enum: [ROLES.ADMIN, ROLES.USER],
+      default: ROLES.USER,
     },
   },
   { timestamps: true, versionKey: false },
