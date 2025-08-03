@@ -4,12 +4,7 @@ import { randomBytes } from 'crypto';
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
 import { UsersCollection } from '../db/models/user.js';
-import {
-  FIFTEEN_MINUTES,
-  ONE_DAY,
-  SMTP,
-  TEMPLATES_DIR,
-} from '../constants/index.js';
+import { FIFTEEN_MINUTES, ONE_DAY, TEMPLATES_DIR } from '../constants/index.js';
 import { SessionsCollection } from '../db/models/session.js';
 import jwt from 'jsonwebtoken';
 import { getEnvVar } from '../utils/getEnvVar.js';
@@ -98,16 +93,19 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   return updatedSession;
 };
 
-export const requestResetToken = async (email) => {
+export const requestResetPassword = async (email) => {
   const user = await UsersCollection.findOne({ email });
   if (!user) {
-    throw createHttpError(404, 'User not found');
+    // throw createHttpError(404, 'User not found');
+    // Важливо: для безпеки не повідомляємо, чи існує email
+    // Просто повертаємо, не кидаємо помилку 404
+    return;
   }
 
   const resetToken = jwt.sign(
     {
       sub: user._id,
-      email,
+      email: user.email,
     },
     getEnvVar('JWT_SECRET'),
     {
@@ -130,12 +128,18 @@ export const requestResetToken = async (email) => {
     link: `${getEnvVar('APP_DOMAIN')}/reset-password?token=${resetToken}`,
   });
 
-  await sendEmail({
-    from: getEnvVar(SMTP.SMTP_FROM),
-    to: email,
-    subject: 'Reset your password',
-    html,
-  });
+  try {
+    await sendEmail({
+      from: getEnvVar('SMTP_FROM'),
+      to: email,
+      subject: 'Reset your password for PostMarkHub',
+      html,
+    });
+  } catch (error) {
+    console.error('Error sending reset password email:', error);
+    // Тут не кидаємо помилку, щоб не блокувати користувача, якщо пошта не відправилась
+    // але бажано її логувати або сповіщати адмінів
+  }
 };
 
 export const resetPassword = async (payload) => {
@@ -144,7 +148,15 @@ export const resetPassword = async (payload) => {
   try {
     entries = jwt.verify(payload.token, getEnvVar('JWT_SECRET'));
   } catch (err) {
-    if (err instanceof Error) throw createHttpError(401, err.message);
+    if (err instanceof Error) {
+      if (err.name === 'TokenExpiredError') {
+        throw createHttpError(401, 'Password reset token expired.');
+      }
+      if (err.name === 'JsonWebTokenError') {
+        throw createHttpError(401, 'Invalid password reset token.');
+      }
+      throw createHttpError(401, err.message);
+    }
     throw err;
   }
 
@@ -154,13 +166,18 @@ export const resetPassword = async (payload) => {
   });
 
   if (!user) {
-    throw createHttpError(404, 'User not found');
+    throw createHttpError(404, 'User not found or token invalid.'); // Загальніше повідомлення
   }
 
   const encryptedPassword = await bcrypt.hash(payload.password, 10);
-
-  await UsersCollection.updateOne(
-    { _id: user._id },
-    { password: encryptedPassword },
+  // Використовуємо findByIdAndUpdate для оновлення пароля та очищення полів токена
+  await UsersCollection.findByIdAndUpdate(
+    user._id,
+    {
+      password: encryptedPassword,
+      resetToken: null,
+      resetTokenValidUntil: null,
+    },
+    { new: true }, // Опціонально, якщо потрібно повернути оновлений об'єкт
   );
 };

@@ -6,9 +6,10 @@ import {
   logoutUser,
   refreshUsersSession,
   resetPassword,
+  requestResetPassword,
 } from '../services/auth.js';
 import { ONE_DAY } from '../constants/index.js';
-import { requestResetToken } from '../services/auth.js';
+import createHttpError from 'http-errors';
 
 const setupSession = (res, session) => {
   res.cookie('refreshToken', session.refreshToken, {
@@ -67,7 +68,11 @@ export const logoutUserController = async (req, res) => {
   res.status(204).send();
 };
 
-export const refreshUserSessionController = async (req, res) => {
+export const refreshUserSessionController = async (req, res, next) => {
+  if (!req.cookies.sessionId || !req.cookies.refreshToken) {
+    return next(createHttpError(401, 'Session cookies not found'));
+  }
+
   const session = await refreshUsersSession({
     sessionId: req.cookies.sessionId,
     refreshToken: req.cookies.refreshToken,
@@ -84,8 +89,8 @@ export const refreshUserSessionController = async (req, res) => {
   });
 };
 
-export const requestResetEmailController = async (req, res) => {
-  await requestResetToken(req.body.email);
+export const requestResetPasswordController = async (req, res) => {
+  await requestResetPassword(req.body.email);
   res.json({
     message: 'Reset password email was successfully sent!',
     status: 200,

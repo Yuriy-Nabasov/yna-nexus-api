@@ -2,19 +2,19 @@
 
 import { Router } from 'express';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
-import { registerUserSchema } from '../validation/auth.js';
-import { validateBody } from '../middlewares/validateBody.js';
 import {
+  registerUserSchema,
   loginUserSchema,
-  requestResetEmailSchema,
+  requestResetPasswordSchema,
   resetPasswordSchema,
 } from '../validation/auth.js';
+import { validateBody } from '../middlewares/validateBody.js';
 import {
   registerUserController,
   loginUserController,
   logoutUserController,
   refreshUserSessionController,
-  requestResetEmailController,
+  requestResetPasswordController,
   resetPasswordController,
 } from '../controllers/auth.js';
 
@@ -38,8 +38,8 @@ router.post('/refresh', ctrlWrapper(refreshUserSessionController));
 
 router.post(
   '/request-reset-email',
-  validateBody(requestResetEmailSchema),
-  ctrlWrapper(requestResetEmailController),
+  validateBody(requestResetPasswordSchema),
+  ctrlWrapper(requestResetPasswordController),
 );
 
 router.post(
