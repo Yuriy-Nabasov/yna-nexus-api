@@ -1,0 +1,67 @@
+# Файл render.yaml для автоматизації розгортання на Render.com
+
+# Це головний розділ, де ми визначаємо всі сервіси нашого проєкту.
+services:
+  # ----------------------------------------------------
+  # Web Service - наш API
+  # ----------------------------------------------------
+  - type: web
+    # Ім'я сервісу, яке буде відображатися на панелі Render.
+    name: yna-nexus-api
+    # Тип середовища: Node.js. Render автоматично визначить версію.
+    env: node
+    # Регіон, де буде розміщений наш сервіс.
+    region: frankfurt
+    # Гілка, з якої Render буде брати код для розгортання.
+    branch: main
+    # Команда, яка буде виконана для встановлення залежностей проєкту.
+    buildCommand: npm install
+    # Команда для запуску нашого сервера.
+    startCommand: npm start
+    # Змінні середовища.
+    # Значення тут — це лише заглушки; їх потрібно буде встановити в налаштуваннях Render.
+    envVars:
+      - key: PORT
+        value: 4484 # Зазвичай порт 4484 використовується лише локально, на Render він буде автоматично встановлений.
+      - key: MONGODB_USER
+        value: 'your_mongodb_user'
+      - key: MONGODB_PASSWORD
+        value: 'your_mongodb_password'
+      - key: MONGODB_URL
+        value: 'your_mongodb_url'
+      - key: MONGODB_DB
+        value: 'your_mongodb_db'
+      - key: SMTP_HOST
+        value: 'your_smtp_host'
+      - key: SMTP_PORT
+        value: 'your_smtp_port'
+      - key: SMTP_USER
+        value: 'your_smtp_user'
+      - key: SMTP_PASSWORD
+        value: 'your_smtp_password'
+      - key: SMTP_FROM
+        value: 'your_smtp_from'
+      - key: JWT_SECRET
+        value: 'your_jwt_secret'
+      - key: ACCESS_TOKEN_SECRET
+        value: 'your_access_token_secret'
+      - key: REFRESH_TOKEN_SECRET
+        value: 'your_refresh_token_secret'
+      - key: UPLOAD_DIR
+        value: 'uploads'
+      - key: APP_DOMAIN
+        value: 'your_app_domain'
+      - key: CLOUD_NAME
+        value: 'your_cloud_name'
+      - key: API_KEY
+        value: 'your_api_key'
+      - key: API_SECRET
+        value: 'your_api_secret'
+      - key: ENABLE_CLOUDINARY
+        value: 'true'
+      - key: GOOGLE_AUTH_CLIENT_ID
+        value: 'your_google_auth_client_id'
+      - key: GOOGLE_AUTH_CLIENT_SECRET
+        value: 'your_google_auth_client_secret'
+      - key: NODE_ENV
+        value: production
