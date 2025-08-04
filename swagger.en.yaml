@@ -1,0 +1,694 @@
+openapi: 3.0.0
+info:
+  title: Your Nexus Archive API
+  description: |-
+    API for the "Your Nexus Archive" stamp collector's application.
+    This API allows users to manage their collection, wish list, and stamps for exchange.
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:4484
+    description: Local development server
+tags:
+  - name: Auth
+    description: User authorization and authentication
+  - name: Stamps
+    description: Interaction with the stamp catalog
+  - name: User
+    description: User data, collection, and list management
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Oleksandr'
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        password:
+          type: string
+          format: password
+          example: 'Password123'
+      required:
+        - name
+        - email
+        - password
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        password:
+          type: string
+          format: password
+          example: 'Password123'
+      required:
+        - email
+        - password
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '66a88b5e9f8a371c646b9a84'
+        name:
+          type: string
+          example: 'Oleksandr'
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        role:
+          type: string
+          enum: ['user', 'admin']
+          example: 'user'
+        collectedStamps:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a85'
+        desiredStamps:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a86'
+        stampsForExchange:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a87'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Login successful'
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YTg4YjVlOWY4YTM3MWM2NDZiOWE4NCIsImlhdCI6MTcyMjM3Mzc5MywiZXhwIjoxNzIyMzc3MzkzfQ.5m8m3R8l5X9q8b8W7n9N1z1m6M3V2d3E4'
+            refreshToken:
+              type: string
+              example: '66a88b5e9f8a371c646b9a84'
+            user:
+              $ref: '#/components/schemas/User'
+    Stamp:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '66a88b5e9f8a371c646b9a81'
+        stamp_name:
+          type: string
+          example: 'First stamp of independent Ukraine'
+        description:
+          type: string
+          example: 'A postage stamp issued in 1992.'
+        country:
+          type: string
+          example: 'Ukraine'
+        year:
+          type: integer
+          example: 1992
+        price:
+          type: number
+          format: float
+          example: 25.50
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/image.png'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully completed'
+        data:
+          type: object
+          description: Data can be different, depending on the request
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: 'Not Found'
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: 'Resource not found.'
+    StampArrayResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully completed'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stamp'
+    ValueResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully completed'
+        data:
+          type: object
+          properties:
+            totalValue:
+              type: number
+              example: 1500.50
+    PercentageResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully completed'
+        data:
+          type: object
+          properties:
+            percentage:
+              type: number
+              example: 25.43
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Successful registration, returns user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User with this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login, returns tokens and user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Incorrect login or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: User logout
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /stamps:
+    get:
+      tags:
+        - Stamps
+      summary: Get all stamps
+      operationId: getAllStamps
+      security: []
+      responses:
+        '200':
+          description: List of all stamps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '404':
+          description: Resources not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /stamps/{stampId}:
+    get:
+      tags:
+        - Stamps
+      summary: Get stamp by ID
+      operationId: getStampById
+      security: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to search for
+      responses:
+        '200':
+          description: Stamp information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Stamp'
+        '400':
+          description: Invalid stamp ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps:
+    get:
+      tags:
+        - User
+      summary: Get the current user's stamp collection
+      operationId: getCollectedStamps
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of collected stamps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/value:
+    get:
+      tags:
+        - User
+      summary: Get the total value of the user's collection
+      operationId: getCollectedStampsValue
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Total value of the collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValueResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/percentage:
+    get:
+      tags:
+        - User
+      summary: Get the completion percentage of the user's collection
+      operationId: getCollectedStampsPercentage
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Collection percentage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PercentageResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Add a stamp to the user's collection
+      operationId: addStampToCollected
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to add
+      responses:
+        '200':
+          description: Stamp added to collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Invalid stamp ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Stamp is already in the collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Remove a stamp from the user's collection
+      operationId: removeStampFromCollected
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to remove
+      responses:
+        '200':
+          description: Stamp removed from collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found in the collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/desired-stamps:
+    get:
+      tags:
+        - User
+      summary: Get the current user's wish list
+      operationId: getDesiredStamps
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Wish list of stamps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/desired-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Add a stamp to the wish list
+      operationId: addStampToDesired
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to add
+      responses:
+        '200':
+          description: Stamp added to the wish list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Invalid stamp ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Stamp is already in the wish list or collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Remove a stamp from the wish list
+      operationId: removeStampFromDesired
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to remove
+      responses:
+        '200':
+          description: Stamp removed from the wish list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found in the wish list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/exchange-stamps:
+    get:
+      tags:
+        - User
+      summary: Get the current user's stamps for exchange
+      operationId: getStampsForExchange
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of stamps for exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/exchange-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Add a stamp to the exchange list
+      operationId: addStampToExchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to add
+      responses:
+        '200':
+          description: Stamp added to the exchange list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Invalid ID or stamp not in collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Stamp is already in the exchange list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Remove a stamp from the exchange list
+      operationId: removeStampFromExchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to remove
+      responses:
+        '200':
+          description: Stamp removed from the exchange list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found in the exchange list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

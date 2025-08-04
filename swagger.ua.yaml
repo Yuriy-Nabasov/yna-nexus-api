@@ -1,0 +1,694 @@
+openapi: 3.0.0
+info:
+  title: Your Nexus Archive API
+  description: |-
+    API для додатка колекціонерів марок "Your Nexus Archive".
+    Цей API дозволяє користувачам керувати своєю колекцією, списком бажаних марок і марок для обміну.
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:4484
+    description: Локальний сервер розробки
+tags:
+  - name: Auth
+    description: Авторизація та аутентифікація користувачів
+  - name: Stamps
+    description: Взаємодія з каталогом марок
+  - name: User
+    description: Керування даними користувача, колекціями та списками
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Oleksandr'
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        password:
+          type: string
+          format: password
+          example: 'Password123'
+      required:
+        - name
+        - email
+        - password
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        password:
+          type: string
+          format: password
+          example: 'Password123'
+      required:
+        - email
+        - password
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '66a88b5e9f8a371c646b9a84'
+        name:
+          type: string
+          example: 'Oleksandr'
+        email:
+          type: string
+          example: 'oleksandr@example.com'
+        role:
+          type: string
+          enum: ['user', 'admin']
+          example: 'user'
+        collectedStamps:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a85'
+        desiredStamps:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a86'
+        stampsForExchange:
+          type: array
+          items:
+            type: string
+            example: '66a88b5e9f8a371c646b9a87'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Login successful'
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YTg4YjVlOWY4YTM3MWM2NDZiOWE4NCIsImlhdCI6MTcyMjM3Mzc5MywiZXhwIjoxNzIyMzc3MzkzfQ.5m8m3R8l5X9q8b8W7n9N1z1m6M3V2d3E4'
+            refreshToken:
+              type: string
+              example: '66a88b5e9f8a371c646b9a84'
+            user:
+              $ref: '#/components/schemas/User'
+    Stamp:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '66a88b5e9f8a371c646b9a81'
+        stamp_name:
+          type: string
+          example: 'Перша марка незалежної України'
+        description:
+          type: string
+          example: 'Поштова марка, випущена у 1992 році.'
+        country:
+          type: string
+          example: 'Україна'
+        year:
+          type: integer
+          example: 1992
+        price:
+          type: number
+          format: float
+          example: 25.50
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/image.png'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Успішно виконано'
+        data:
+          type: object
+          description: Дані можуть бути різними, залежно від запиту
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: 'Not Found'
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: 'Resource not found.'
+    StampArrayResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Успішно виконано'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stamp'
+    ValueResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Успішно виконано'
+        data:
+          type: object
+          properties:
+            totalValue:
+              type: number
+              example: 1500.50
+    PercentageResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Успішно виконано'
+        data:
+          type: object
+          properties:
+            percentage:
+              type: number
+              example: 25.43
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Реєстрація нового користувача
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Успішна реєстрація, повертає дані про користувача
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Некоректні дані у запиті
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Користувач з таким email вже існує
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Вхід користувача
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успішний вхід, повертає токени та дані користувача
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неправильний логін або пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Вихід користувача
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успішний вихід
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /stamps:
+    get:
+      tags:
+        - Stamps
+      summary: Отримати всі марки
+      operationId: getAllStamps
+      security: []
+      responses:
+        '200':
+          description: Список усіх марок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '404':
+          description: Ресурси не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /stamps/{stampId}:
+    get:
+      tags:
+        - Stamps
+      summary: Отримати марку за ID
+      operationId: getStampById
+      security: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для пошуку
+      responses:
+        '200':
+          description: Інформація про марку
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Stamp'
+        '400':
+          description: Некоректний ID марки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps:
+    get:
+      tags:
+        - User
+      summary: Отримати колекцію марок поточного користувача
+      operationId: getCollectedStamps
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список зібраних марок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/value:
+    get:
+      tags:
+        - User
+      summary: Отримати загальну вартість колекції користувача
+      operationId: getCollectedStampsValue
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Загальна вартість колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValueResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/percentage:
+    get:
+      tags:
+        - User
+      summary: Отримати відсоток завершеності колекції користувача
+      operationId: getCollectedStampsPercentage
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Відсоток колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PercentageResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/collected-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Додати марку до колекції користувача
+      operationId: addStampToCollected
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для додавання
+      responses:
+        '200':
+          description: Марку додано до колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Некоректний ID марки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Марка вже є в колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Видалити марку з колекції користувача
+      operationId: removeStampFromCollected
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для видалення
+      responses:
+        '200':
+          description: Марку видалено з колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено в колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/desired-stamps:
+    get:
+      tags:
+        - User
+      summary: Отримати список бажаних марок поточного користувача
+      operationId: getDesiredStamps
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список бажаних марок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/desired-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Додати марку до списку бажаних
+      operationId: addStampToDesired
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для додавання
+      responses:
+        '200':
+          description: Марку додано до списку бажаних
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Некоректний ID марки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Марка вже є в списку бажаних або в колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Видалити марку зі списку бажаних
+      operationId: removeStampFromDesired
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для видалення
+      responses:
+        '200':
+          description: Марку видалено зі списку бажаних
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено в списку бажаних
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/exchange-stamps:
+    get:
+      tags:
+        - User
+      summary: Отримати список марок для обміну поточного користувача
+      operationId: getStampsForExchange
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список марок, готових до обміну
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/exchange-stamps/{stampId}:
+    post:
+      tags:
+        - User
+      summary: Додати марку до списку для обміну
+      operationId: addStampToExchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для додавання
+      responses:
+        '200':
+          description: Марку додано до списку для обміну
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '400':
+          description: Некоректний ID або марки немає в колекції
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Марка вже є в списку на обмін
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - User
+      summary: Видалити марку зі списку для обміну
+      operationId: removeStampFromExchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для видалення
+      responses:
+        '200':
+          description: Марку видалено зі списку для обміну
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampArrayResponse'
+        '401':
+          description: Неавторизований доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено в списку для обміну
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

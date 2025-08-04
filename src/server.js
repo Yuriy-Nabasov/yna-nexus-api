@@ -4,12 +4,14 @@ import express from 'express';
 import pino from 'pino-http';
 import cors from 'cors';
 import { getEnvVar } from './utils/getEnvVar.js';
-// import stampsRouter from './routers/stamps.js';
 import router from './routers/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import cookieParser from 'cookie-parser';
 import { UPLOAD_DIR } from './constants/index.js';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 
 const PORT = Number(getEnvVar('PORT', '4484'));
 
@@ -28,11 +30,47 @@ export const startServer = () => {
     }),
   );
 
+  // Створюємо проміжний обробник (middleware) для динамічного завантаження файлу специфікації.
+  // Цей обробник буде виконуватися перед swagger-ui, щоб визначити, який файл завантажити.
+  const dynamicSwaggerLoader = (req, res, next) => {
+    // Зчитуємо заголовок Accept-Language, який надсилає браузер.
+    const acceptLanguage = req.headers['accept-language'];
+
+    // Визначаємо мову. За замовчуванням встановлюємо 'en'.
+    let lang = 'en';
+    if (acceptLanguage && acceptLanguage.includes('uk')) {
+      lang = 'ua';
+    }
+
+    // Завантажуємо відповідний файл специфікації.
+    // const swaggerDocument = YAML.load('./swagger.yaml');
+    const swaggerFilePath = path.resolve(`./swagger.${lang}.yaml`);
+    try {
+      req.swaggerDoc = YAML.load(swaggerFilePath);
+    } catch (error) {
+      console.error(`Failed to load Swagger file: ${swaggerFilePath}`, error);
+      // Якщо файл не знайдено, завантажуємо англійську версію як запасний варіант.
+      req.swaggerDoc = YAML.load(path.resolve('./swagger.en.yaml'));
+    }
+
+    // Передаємо управління наступному обробнику (swagger-ui).
+    next();
+  };
+
+  // Використовуємо наш динамічний завантажувач перед swagger-ui.
+  // Замість статичного документу, ми передаємо функцію, яка повертає документ з об'єкта req.
+  // Це дозволяє swagger-ui налаштовуватись індивідуально для кожного запиту.
+  app.use(
+    '/api-docs',
+    dynamicSwaggerLoader,
+    swaggerUi.serve,
+    swaggerUi.setup((req) => req.swaggerDoc),
+  );
+
   app.get('/', (req, res) => {
     res.json({ message: 'Hello YNA! Your Nexus Archive API is running.' });
   });
 
-  // app.use(stampsRouter);
   app.use(router);
 
   app.use('/uploads', express.static(UPLOAD_DIR));
