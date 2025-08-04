@@ -18,8 +18,28 @@ const PORT = Number(getEnvVar('PORT', '4484'));
 export const startServer = () => {
   const app = express();
 
+  const allowedOrigins = [
+    'http://localhost:4484',
+    'https://yna-nexus-api.onrender.com',
+  ];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Дозволяємо запити, якщо origin знаходиться у списку
+        // або якщо origin не вказаний (наприклад, для запитів з Postman).
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
+    }),
+  );
+
   app.use(express.json());
-  app.use(cors());
+  // app.use(cors());
   app.use(cookieParser());
 
   app.use(
