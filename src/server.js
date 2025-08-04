@@ -15,6 +15,8 @@ import path from 'path';
 
 const PORT = Number(getEnvVar('PORT', '4484'));
 
+const APP_DOMAIN = getEnvVar('APP_DOMAIN');
+
 export const startServer = () => {
   const app = express();
 
@@ -26,8 +28,6 @@ export const startServer = () => {
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Дозволяємо запити, якщо origin знаходиться у списку
-        // або якщо origin не вказаний (наприклад, для запитів з Postman).
         if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
@@ -39,7 +39,6 @@ export const startServer = () => {
   );
 
   app.use(express.json());
-  // app.use(cors());
   app.use(cookieParser());
 
   app.use(
@@ -50,45 +49,33 @@ export const startServer = () => {
     }),
   );
 
-  // Створюємо проміжний обробник (middleware) для динамічного завантаження файлу специфікації.
-  // Цей обробник буде виконуватися перед swagger-ui, щоб визначити, який файл завантажити.
+  // Створюємо проміжний обробник для динамічного завантаження файлу специфікації.
   const dynamicSwaggerLoader = (req, res, next) => {
-    // Зчитуємо заголовок Accept-Language, який надсилає браузер.
     const acceptLanguage = req.headers['accept-language'];
 
-    // Визначаємо мову. За замовчуванням встановлюємо 'en'.
     let lang = 'en';
     if (acceptLanguage && acceptLanguage.includes('uk')) {
       lang = 'ua';
     }
 
-    // Завантажуємо відповідний файл специфікації.
-    // const swaggerDocument = YAML.load('./swagger.yaml');
     const swaggerFilePath = path.resolve(`./swagger.${lang}.yaml`);
     let swaggerDocument;
     try {
       swaggerDocument = YAML.load(swaggerFilePath);
     } catch (error) {
       console.error(`Failed to load Swagger file: ${swaggerFilePath}`, error);
-      // Якщо файл не знайдено, завантажуємо англійську версію як запасний варіант.
       swaggerDocument = YAML.load(path.resolve('./swagger.en.yaml'));
     }
-    // Оновлюємо URL сервера в специфікації.
-    // Це дозволяє Swagger UI надсилати запити на правильний домен (локальний чи на Render).
-    // req.protocol повертає 'http' або 'https'.
-    // req.get('host') повертає 'localhost:4484' або 'yna-nexus-api.onrender.com'.
-    const newServerUrl = `${req.protocol}://${req.get('host')}`;
-    swaggerDocument.servers = [{ url: newServerUrl }];
 
-    // Передаємо оновлений документ наступному обробнику.
+    const swaggerServerUrl =
+      APP_DOMAIN || `${req.protocol}://${req.get('host')}`;
+    swaggerDocument.servers = [{ url: swaggerServerUrl }];
+
     req.swaggerDoc = swaggerDocument;
 
     next();
   };
 
-  // Використовуємо наш динамічний завантажувач перед swagger-ui.
-  // Замість статичного документу, ми передаємо функцію, яка повертає документ з об'єкта req.
-  // Це дозволяє swagger-ui налаштовуватись індивідуально для кожного запиту.
   app.use(
     '/api-docs',
     dynamicSwaggerLoader,
