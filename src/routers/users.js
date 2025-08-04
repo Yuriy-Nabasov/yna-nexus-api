@@ -9,6 +9,7 @@ import {
   removeStampFromCollectedController,
   getCollectedStampsController,
   getCollectedStampsValueController,
+  getCollectedStampsPercentageController,
 } from '../controllers/users.js';
 
 const router = Router();
@@ -25,6 +26,13 @@ router.get(
   '/me/collected-stamps/value',
   authenticate,
   ctrlWrapper(getCollectedStampsValueController),
+);
+
+// --- МАРШРУТ Розрахунка відсотку колекції користувача ---
+router.get(
+  '/me/collected-stamps/percentage',
+  authenticate,
+  ctrlWrapper(getCollectedStampsPercentageController),
 );
 
 // Маршрут для додавання марки до колекції поточного користувача

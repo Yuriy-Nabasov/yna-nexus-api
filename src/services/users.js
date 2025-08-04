@@ -74,3 +74,24 @@ export const getCollectedStampsValue = async (userId) => {
 
   return totalValue;
 };
+
+export const getCollectedStampsPercentage = async (userId) => {
+  // 1. Отримуємо кількість марок у колекції користувача
+  const user = await UsersCollection.findById(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  const userCollectedCount = user.collectedStamps.length;
+
+  // 2. Отримуємо загальну кількість марок у базі даних
+  const totalStampsCount = await StampsCollection.countDocuments();
+
+  // 3. Розраховуємо відсоток
+  let percentage = 0;
+  if (totalStampsCount > 0) {
+    percentage = (userCollectedCount / totalStampsCount) * 100;
+  }
+
+  // Можна округлити до 2 знаків після коми для кращого відображення
+  return parseFloat(percentage.toFixed(2));
+};

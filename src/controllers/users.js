@@ -6,6 +6,7 @@ import {
   removeStampFromCollected,
   getCollectedStamps,
   getCollectedStampsValue,
+  getCollectedStampsPercentage,
 } from '../services/users.js';
 import { isValidObjectId } from 'mongoose';
 
@@ -68,6 +69,23 @@ export const getCollectedStampsValueController = async (req, res, next) => {
     message: 'Successfully retrieved total value of collected stamps!',
     data: {
       totalValue,
+    },
+  });
+};
+
+export const getCollectedStampsPercentageController = async (
+  req,
+  res,
+  next,
+) => {
+  const userId = req.user._id;
+  const percentage = await getCollectedStampsPercentage(userId);
+
+  res.json({
+    status: 200,
+    message: 'Successfully retrieved collection percentage!',
+    data: {
+      percentage,
     },
   });
 };
