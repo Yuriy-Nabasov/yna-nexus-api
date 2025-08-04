@@ -45,15 +45,24 @@ export const startServer = () => {
     // Завантажуємо відповідний файл специфікації.
     // const swaggerDocument = YAML.load('./swagger.yaml');
     const swaggerFilePath = path.resolve(`./swagger.${lang}.yaml`);
+    let swaggerDocument;
     try {
-      req.swaggerDoc = YAML.load(swaggerFilePath);
+      swaggerDocument = YAML.load(swaggerFilePath);
     } catch (error) {
       console.error(`Failed to load Swagger file: ${swaggerFilePath}`, error);
       // Якщо файл не знайдено, завантажуємо англійську версію як запасний варіант.
-      req.swaggerDoc = YAML.load(path.resolve('./swagger.en.yaml'));
+      swaggerDocument = YAML.load(path.resolve('./swagger.en.yaml'));
     }
+    // Оновлюємо URL сервера в специфікації.
+    // Це дозволяє Swagger UI надсилати запити на правильний домен (локальний чи на Render).
+    // req.protocol повертає 'http' або 'https'.
+    // req.get('host') повертає 'localhost:4484' або 'yna-nexus-api.onrender.com'.
+    const newServerUrl = `${req.protocol}://${req.get('host')}`;
+    swaggerDocument.servers = [{ url: newServerUrl }];
 
-    // Передаємо управління наступному обробнику (swagger-ui).
+    // Передаємо оновлений документ наступному обробнику.
+    req.swaggerDoc = swaggerDocument;
+
     next();
   };
 
