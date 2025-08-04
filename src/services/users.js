@@ -55,3 +55,22 @@ export const removeStampFromCollected = async (userId, stampId) => {
   );
   return updatedUser.collectedStamps;
 };
+
+export const getCollectedStampsValue = async (userId) => {
+  // Знаходимо користувача та популяризуємо його колекцію марок
+  const user = await UsersCollection.findById(userId).populate(
+    'collectedStamps',
+  );
+
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+
+  // Обчислюємо суму цін всіх марок у колекції
+  const totalValue = user.collectedStamps.reduce((sum, stamp) => {
+    // Перевіряємо, чи існує stamp.price, оскільки populate може повернути null для видалених марок
+    return sum + (stamp?.price || 0);
+  }, 0);
+
+  return totalValue;
+};

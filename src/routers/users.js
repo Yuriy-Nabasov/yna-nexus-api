@@ -8,6 +8,7 @@ import {
   addStampToCollectedController,
   removeStampFromCollectedController,
   getCollectedStampsController,
+  getCollectedStampsValueController,
 } from '../controllers/users.js';
 
 const router = Router();
@@ -17,6 +18,13 @@ router.get(
   '/me/collected-stamps',
   authenticate,
   ctrlWrapper(getCollectedStampsController),
+);
+
+// --- МАРШРУТ Приблизна вартість колекції користувача ---
+router.get(
+  '/me/collected-stamps/value',
+  authenticate,
+  ctrlWrapper(getCollectedStampsValueController),
 );
 
 // Маршрут для додавання марки до колекції поточного користувача

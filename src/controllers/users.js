@@ -5,6 +5,7 @@ import {
   addStampToCollected,
   removeStampFromCollected,
   getCollectedStamps,
+  getCollectedStampsValue,
 } from '../services/users.js';
 import { isValidObjectId } from 'mongoose';
 
@@ -55,5 +56,18 @@ export const removeStampFromCollectedController = async (req, res, next) => {
     status: 200,
     message: 'Stamp successfully removed from collection!',
     data: result,
+  });
+};
+
+export const getCollectedStampsValueController = async (req, res, next) => {
+  const userId = req.user._id; // Отримуємо ID користувача з req.user (після authenticate)
+  const totalValue = await getCollectedStampsValue(userId);
+
+  res.json({
+    status: 200,
+    message: 'Successfully retrieved total value of collected stamps!',
+    data: {
+      totalValue,
+    },
   });
 };
