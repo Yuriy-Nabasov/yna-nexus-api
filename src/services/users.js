@@ -155,3 +155,69 @@ export const removeStampFromDesired = async (userId, stampId) => {
   );
   return updatedUser.desiredStamps;
 };
+
+export const getStampsForExchange = async (userId) => {
+  const user = await UsersCollection.findById(userId).populate(
+    'stampsForExchange',
+  );
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  return user.stampsForExchange;
+};
+
+export const addStampToExchange = async (userId, stampId) => {
+  const user = await UsersCollection.findById(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  const stamp = await StampsCollection.findById(stampId);
+  if (!stamp) {
+    throw createHttpError(404, 'Stamp not found.');
+  }
+
+  // Перевіряємо, чи марка вже є у списку на обмін
+  const isAlreadyForExchange = user.stampsForExchange.some((exchangeStampId) =>
+    exchangeStampId.equals(stampId),
+  );
+  if (isAlreadyForExchange) {
+    throw createHttpError(409, 'Stamp is already listed for exchange.');
+  }
+
+  // Перевіряємо, чи марка взагалі є в колекції користувача, щоб її можна було обміняти
+  const isCollected = user.collectedStamps.some((collectedStampId) =>
+    collectedStampId.equals(stampId),
+  );
+  if (!isCollected) {
+    throw createHttpError(
+      400,
+      'Only stamps from your collected stamps can be added for exchange.',
+    );
+  }
+
+  user.stampsForExchange.push(stampId);
+  await user.save();
+  const updatedUser = await UsersCollection.findById(userId).populate(
+    'stampsForExchange',
+  );
+  return updatedUser.stampsForExchange;
+};
+
+export const removeStampFromExchange = async (userId, stampId) => {
+  const user = await UsersCollection.findById(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  const initialLength = user.stampsForExchange.length;
+  user.stampsForExchange = user.stampsForExchange.filter(
+    (exchangeStampId) => !exchangeStampId.equals(stampId),
+  );
+  if (user.stampsForExchange.length === initialLength) {
+    throw createHttpError(404, 'Stamp not found in exchange list.');
+  }
+  await user.save();
+  const updatedUser = await UsersCollection.findById(userId).populate(
+    'stampsForExchange',
+  );
+  return updatedUser.stampsForExchange;
+};

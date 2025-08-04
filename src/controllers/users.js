@@ -10,6 +10,9 @@ import {
   getDesiredStamps,
   addStampToDesired,
   removeStampFromDesired,
+  getStampsForExchange,
+  addStampToExchange,
+  removeStampFromExchange,
 } from '../services/users.js';
 import { isValidObjectId } from 'mongoose';
 
@@ -127,6 +130,44 @@ export const removeStampFromDesiredController = async (req, res, next) => {
   res.status(200).json({
     status: 200,
     message: 'Stamp successfully removed from desired list!',
+    data: result,
+  });
+};
+
+export const getStampsForExchangeController = async (req, res, next) => {
+  const userId = req.user._id;
+  const stampsForExchange = await getStampsForExchange(userId);
+  res.json({
+    status: 200,
+    message: 'Successfully retrieved stamps for exchange!',
+    data: stampsForExchange,
+  });
+};
+
+export const addStampToExchangeController = async (req, res, next) => {
+  const userId = req.user._id;
+  const { stampId } = req.params;
+  if (!isValidObjectId(stampId)) {
+    return next(createHttpError(400, 'Invalid stamp ID format.'));
+  }
+  const result = await addStampToExchange(userId, stampId);
+  res.status(200).json({
+    status: 200,
+    message: 'Stamp successfully added for exchange!',
+    data: result,
+  });
+};
+
+export const removeStampFromExchangeController = async (req, res, next) => {
+  const userId = req.user._id;
+  const { stampId } = req.params;
+  if (!isValidObjectId(stampId)) {
+    return next(createHttpError(400, 'Invalid stamp ID format.'));
+  }
+  const result = await removeStampFromExchange(userId, stampId);
+  res.status(200).json({
+    status: 200,
+    message: 'Stamp successfully removed from exchange list!',
     data: result,
   });
 };

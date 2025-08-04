@@ -13,6 +13,9 @@ import {
   getDesiredStampsController,
   addStampToDesiredController,
   removeStampFromDesiredController,
+  getStampsForExchangeController,
+  addStampToExchangeController,
+  removeStampFromExchangeController,
 } from '../controllers/users.js';
 
 const router = Router();
@@ -75,6 +78,29 @@ router.delete(
   authenticate,
   isValidId,
   ctrlWrapper(removeStampFromDesiredController),
+);
+
+// Маршрут для отримання всіх марок у списку на обмін поточного користувача
+router.get(
+  '/me/exchange-stamps',
+  authenticate,
+  ctrlWrapper(getStampsForExchangeController),
+);
+
+// Маршрут для додавання марки до списку на обмін поточного користувача
+router.post(
+  '/me/exchange-stamps/:stampId',
+  authenticate,
+  isValidId,
+  ctrlWrapper(addStampToExchangeController),
+);
+
+// Маршрут для видалення марки зі списку на обмін поточного користувача
+router.delete(
+  '/me/exchange-stamps/:stampId',
+  authenticate,
+  isValidId,
+  ctrlWrapper(removeStampFromExchangeController),
 );
 
 export default router;
