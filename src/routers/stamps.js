@@ -8,6 +8,7 @@ import {
   deleteStampController,
   upsertStampController,
   patchStampController,
+  getTotalStampsValueController,
 } from '../controllers/stamps.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { validateBody } from '../middlewares/validateBody.js';
@@ -20,6 +21,8 @@ import { ROLES } from '../constants/index.js';
 import { upload } from '../middlewares/multer.js';
 
 const router = Router();
+
+router.get('/total-value', ctrlWrapper(getTotalStampsValueController));
 
 router.get('/', ctrlWrapper(getStampsController));
 

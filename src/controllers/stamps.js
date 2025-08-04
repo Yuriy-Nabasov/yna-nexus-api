@@ -6,6 +6,7 @@ import {
   createStamp,
   deleteStamp,
   updateStamp,
+  getTotalStampsValue,
 } from '../services/stamps.js';
 import createHttpError from 'http-errors';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
@@ -170,5 +171,17 @@ export const patchStampController = async (req, res, next) => {
     status: 200,
     message: `Successfully patched a stamp!`,
     data: result.stamp,
+  });
+};
+
+export const getTotalStampsValueController = async (req, res) => {
+  const totalValue = await getTotalStampsValue();
+
+  res.json({
+    status: 200,
+    message: 'Successfully retrieved total value of all stamps!',
+    data: {
+      totalValue,
+    },
   });
 };

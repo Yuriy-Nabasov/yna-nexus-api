@@ -81,3 +81,24 @@ export const updateStamp = async (stampId, payload, options = {}) => {
     isNew: Boolean(rawResult?.lastErrorObject?.upserted),
   };
 };
+
+export const getTotalStampsValue = async () => {
+  const result = await StampsCollection.aggregate([
+    {
+      $group: {
+        _id: null, // Групуємо всі документи в одну групу
+        totalValue: { $sum: '$price' }, // Сумуємо значення поля 'price'
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Виключаємо поле _id з результату
+        totalValue: 1, // Включаємо поле totalValue
+      },
+    },
+  ]);
+
+  // Якщо марок немає, result буде порожнім масивом.
+  // Повертаємо 0, якщо результат порожній, або знайдене значення.
+  return result.length > 0 ? result[0].totalValue : 0;
+};
