@@ -7,6 +7,9 @@ import {
   getCollectedStamps,
   getCollectedStampsValue,
   getCollectedStampsPercentage,
+  getDesiredStamps,
+  addStampToDesired,
+  removeStampFromDesired,
 } from '../services/users.js';
 import { isValidObjectId } from 'mongoose';
 
@@ -87,5 +90,43 @@ export const getCollectedStampsPercentageController = async (
     data: {
       percentage,
     },
+  });
+};
+
+export const getDesiredStampsController = async (req, res, next) => {
+  const userId = req.user._id;
+  const desiredStamps = await getDesiredStamps(userId);
+  res.json({
+    status: 200,
+    message: 'Successfully retrieved desired stamps!',
+    data: desiredStamps,
+  });
+};
+
+export const addStampToDesiredController = async (req, res, next) => {
+  const userId = req.user._id;
+  const { stampId } = req.params;
+  if (!isValidObjectId(stampId)) {
+    return next(createHttpError(400, 'Invalid stamp ID format.'));
+  }
+  const result = await addStampToDesired(userId, stampId);
+  res.status(200).json({
+    status: 200,
+    message: 'Stamp successfully added to desired list!',
+    data: result,
+  });
+};
+
+export const removeStampFromDesiredController = async (req, res, next) => {
+  const userId = req.user._id;
+  const { stampId } = req.params;
+  if (!isValidObjectId(stampId)) {
+    return next(createHttpError(400, 'Invalid stamp ID format.'));
+  }
+  const result = await removeStampFromDesired(userId, stampId);
+  res.status(200).json({
+    status: 200,
+    message: 'Stamp successfully removed from desired list!',
+    data: result,
   });
 };

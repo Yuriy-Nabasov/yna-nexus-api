@@ -12,6 +12,10 @@ const usersSchema = new Schema(
       type: [{ type: Schema.Types.ObjectId, ref: 'stamps' }],
       default: [],
     },
+    desiredStamps: {
+      type: [{ type: Schema.Types.ObjectId, ref: 'stamps' }],
+      default: [],
+    },
     role: {
       type: String,
       enum: [ROLES.ADMIN, ROLES.USER],

@@ -95,3 +95,63 @@ export const getCollectedStampsPercentage = async (userId) => {
   // Можна округлити до 2 знаків після коми для кращого відображення
   return parseFloat(percentage.toFixed(2));
 };
+
+export const getDesiredStamps = async (userId) => {
+  const user = await UsersCollection.findById(userId).populate('desiredStamps');
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  return user.desiredStamps;
+};
+
+export const addStampToDesired = async (userId, stampId) => {
+  const user = await UsersCollection.findById(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  const stamp = await StampsCollection.findById(stampId);
+  if (!stamp) {
+    throw createHttpError(404, 'Stamp not found.');
+  }
+  // Перевіряємо, чи марка вже є у списку бажаних
+  const isAlreadyDesired = user.desiredStamps.some((desiredStampId) =>
+    desiredStampId.equals(stampId),
+  );
+  if (isAlreadyDesired) {
+    throw createHttpError(409, 'Stamp is already in the desired list.');
+  }
+  // Перевіряємо, чи марка вже є у колекції користувача (опціонально, але логічно)
+  const isAlreadyCollected = user.collectedStamps.some((collectedStampId) =>
+    collectedStampId.equals(stampId),
+  );
+  if (isAlreadyCollected) {
+    // Можливо, це не помилка, а попередження, але якщо логіка така, що бажані - це ті, яких немає
+    throw createHttpError(409, 'Stamp is already in your collected stamps.');
+  }
+
+  user.desiredStamps.push(stampId);
+  await user.save();
+  const updatedUser = await UsersCollection.findById(userId).populate(
+    'desiredStamps',
+  );
+  return updatedUser.desiredStamps;
+};
+
+export const removeStampFromDesired = async (userId, stampId) => {
+  const user = await UsersCollection.findById(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found.');
+  }
+  const initialLength = user.desiredStamps.length;
+  user.desiredStamps = user.desiredStamps.filter(
+    (desiredStampId) => !desiredStampId.equals(stampId),
+  );
+  if (user.desiredStamps.length === initialLength) {
+    throw createHttpError(404, 'Stamp not found in desired list.');
+  }
+  await user.save();
+  const updatedUser = await UsersCollection.findById(userId).populate(
+    'desiredStamps',
+  );
+  return updatedUser.desiredStamps;
+};

@@ -10,6 +10,9 @@ import {
   getCollectedStampsController,
   getCollectedStampsValueController,
   getCollectedStampsPercentageController,
+  getDesiredStampsController,
+  addStampToDesiredController,
+  removeStampFromDesiredController,
 } from '../controllers/users.js';
 
 const router = Router();
@@ -49,6 +52,29 @@ router.delete(
   authenticate,
   isValidId,
   ctrlWrapper(removeStampFromCollectedController),
+);
+
+// Маршрут для отримання всіх марок у списку бажаних поточного користувача
+router.get(
+  '/me/desired-stamps',
+  authenticate,
+  ctrlWrapper(getDesiredStampsController),
+);
+
+// Маршрут для додавання марки до списку бажаних поточного користувача
+router.post(
+  '/me/desired-stamps/:stampId',
+  authenticate,
+  isValidId,
+  ctrlWrapper(addStampToDesiredController),
+);
+
+// Маршрут для видалення марки зі списку бажаних поточного користувача
+router.delete(
+  '/me/desired-stamps/:stampId',
+  authenticate,
+  isValidId,
+  ctrlWrapper(removeStampFromDesiredController),
 );
 
 export default router;
