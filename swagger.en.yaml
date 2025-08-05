@@ -2,12 +2,12 @@ openapi: 3.0.0
 info:
   title: Your Nexus Archive API
   description: |-
-    API for the "Your Nexus Archive" stamp collector's application.
-    This API allows users to manage their collection, wish list, and stamps for exchange.
-  version: 1.0.0
+    API for the stamp collector's app "Your Nexus Archive".
+    This API allows users to manage their collection, desired stamps list, and stamps for exchange.
+  version: 1.1.0
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+    name: Mozilla Public License 2.0 (MPL)
+    url: https://www.mozilla.org/en-US/MPL/2.0/
 servers:
   - url: http://localhost:4484
     description: Local development server
@@ -17,7 +17,7 @@ tags:
   - name: Stamps
     description: Interaction with the stamp catalog
   - name: User
-    description: User data, collection, and list management
+    description: User data, collections, and lists management
 components:
   securitySchemes:
     bearerAuth:
@@ -120,7 +120,7 @@ components:
           example: 'First stamp of independent Ukraine'
         description:
           type: string
-          example: 'A postage stamp issued in 1992.'
+          example: 'A postal stamp issued in 1992.'
         country:
           type: string
           example: 'Ukraine'
@@ -149,10 +149,10 @@ components:
           example: 200
         message:
           type: string
-          example: 'Successfully completed'
+          example: 'Successfully executed'
         data:
           type: object
-          description: Data can be different, depending on the request
+          description: The data may vary depending on the request
     ErrorResponse:
       type: object
       properties:
@@ -176,7 +176,7 @@ components:
           example: 200
         message:
           type: string
-          example: 'Successfully completed'
+          example: 'Successfully executed'
         data:
           type: array
           items:
@@ -189,7 +189,7 @@ components:
           example: 200
         message:
           type: string
-          example: 'Successfully completed'
+          example: 'Successfully executed'
         data:
           type: object
           properties:
@@ -204,13 +204,47 @@ components:
           example: 200
         message:
           type: string
-          example: 'Successfully completed'
+          example: 'Successfully executed'
         data:
           type: object
           properties:
             percentage:
               type: number
               example: 25.43
+    PaginationInfo:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+          description: Total number of items
+          example: 150
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 15
+        currentPage:
+          type: integer
+          description: Current page number
+          example: 1
+        perPage:
+          type: integer
+          description: Number of items per page
+          example: 12
+    PaginatedStampsResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully executed'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stamp'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
 paths:
   /auth/register:
     post:
@@ -236,13 +270,13 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Invalid request data
+          description: Invalid data in the request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: User with this email already exists
+          description: A user with this email already exists
           content:
             application/json:
               schema:
@@ -298,16 +332,65 @@ paths:
     get:
       tags:
         - Stamps
-      summary: Get all stamps
+      summary: Get all stamps with pagination, sorting, and filtering
       operationId: getAllStamps
       security: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            default: 'createdAt'
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+          description: Sort direction
+        - name: stamp_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by stamp name (partial match)
+        - name: country
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by country
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by year of issue
       responses:
         '200':
-          description: List of all stamps
+          description: List of all stamps with pagination
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StampArrayResponse'
+                $ref: '#/components/schemas/PaginatedStampsResponse'
         '404':
           description: Resources not found
           content:
@@ -318,7 +401,7 @@ paths:
     get:
       tags:
         - Stamps
-      summary: Get stamp by ID
+      summary: Get a stamp by ID
       operationId: getStampById
       security: []
       parameters:
@@ -327,7 +410,7 @@ paths:
           required: true
           schema:
             type: string
-          description: ID of the stamp to search for
+          description: ID of the stamp to find
       responses:
         '200':
           description: Stamp information
@@ -354,17 +437,48 @@ paths:
     get:
       tags:
         - User
-      summary: Get the current user's stamp collection
+      summary: Get the current user's stamp collection with pagination and sorting
       operationId: getCollectedStamps
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            default: 'createdAt'
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+          description: Sort direction
       responses:
         '200':
-          description: List of collected stamps
+          description: List of collected stamps with pagination
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StampArrayResponse'
+                $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
           description: Unauthorized access
           content:
@@ -396,7 +510,7 @@ paths:
     get:
       tags:
         - User
-      summary: Get the completion percentage of the user's collection
+      summary: Get the percentage of completion for the user's collection
       operationId: getCollectedStampsPercentage
       security:
         - bearerAuth: []
@@ -430,7 +544,7 @@ paths:
           description: ID of the stamp to add
       responses:
         '200':
-          description: Stamp added to collection
+          description: Stamp added to the collection
           content:
             application/json:
               schema:
@@ -475,7 +589,7 @@ paths:
           description: ID of the stamp to remove
       responses:
         '200':
-          description: Stamp removed from collection
+          description: Stamp removed from the collection
           content:
             application/json:
               schema:
@@ -496,17 +610,48 @@ paths:
     get:
       tags:
         - User
-      summary: Get the current user's wish list
+      summary: Get the current user's desired stamps list with pagination and sorting
       operationId: getDesiredStamps
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            default: 'createdAt'
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+          description: Sort direction
       responses:
         '200':
-          description: Wish list of stamps
+          description: List of desired stamps with pagination
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StampArrayResponse'
+                $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
           description: Unauthorized access
           content:
@@ -517,7 +662,7 @@ paths:
     post:
       tags:
         - User
-      summary: Add a stamp to the wish list
+      summary: Add a stamp to the desired stamps list
       operationId: addStampToDesired
       security:
         - bearerAuth: []
@@ -530,7 +675,7 @@ paths:
           description: ID of the stamp to add
       responses:
         '200':
-          description: Stamp added to the wish list
+          description: Stamp added to the desired stamps list
           content:
             application/json:
               schema:
@@ -554,7 +699,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Stamp is already in the wish list or collection
+          description: Stamp is already in the desired list or collection
           content:
             application/json:
               schema:
@@ -562,7 +707,7 @@ paths:
     delete:
       tags:
         - User
-      summary: Remove a stamp from the wish list
+      summary: Remove a stamp from the desired stamps list
       operationId: removeStampFromDesired
       security:
         - bearerAuth: []
@@ -575,7 +720,7 @@ paths:
           description: ID of the stamp to remove
       responses:
         '200':
-          description: Stamp removed from the wish list
+          description: Stamp removed from the desired stamps list
           content:
             application/json:
               schema:
@@ -587,7 +732,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found in the wish list
+          description: Stamp not found in the desired stamps list
           content:
             application/json:
               schema:
@@ -596,17 +741,48 @@ paths:
     get:
       tags:
         - User
-      summary: Get the current user's stamps for exchange
+      summary: Get the current user's stamps for exchange list with pagination and sorting
       operationId: getStampsForExchange
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            default: 'createdAt'
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+          description: Sort direction
       responses:
         '200':
-          description: List of stamps for exchange
+          description: List of stamps for exchange with pagination
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StampArrayResponse'
+                $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
           description: Unauthorized access
           content:
