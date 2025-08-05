@@ -42,7 +42,7 @@ If you are interested in the idea of developing, popularizing, and contributing 
 
 ## License
 
-This project is licensed under the Mozilla Public License 2.0 (MPL). It encourages open collaboration, allowing the code to be used in commercial projects on the condition that changes to the code itself are also kept open.
+This project is licensed under the Mozilla Public License 2.0 (MPL). It encourages open collaboration, allowing the code to be used in commercial projects on the condition that changes to the code itself are also kept open. Details can be found in the [LICENSE file](https://www.mozilla.org/en-US/MPL/2.0/).
 
 ## Author
 
