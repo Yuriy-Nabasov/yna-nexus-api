@@ -2,18 +2,19 @@ openapi: 3.0.0
 info:
   title: Your Nexus Archive API
   description: |-
-    API для додатка колекціонерів марок "Your Nexus Archive".
-    Цей API дозволяє користувачам керувати своєю колекцією, списком бажаних марок і марок для обміну.
-  version: 1.1.0
+    API для мобільного застосунку "Your Nexus Archive" для колекціонерів марок.
+    Цей API дозволяє користувачам керувати своєю колекцією, списком бажаних марок та марок для обміну.
+    Додано нові адміністративні ендпоінти для керування каталогом марок.
+  version: 1.2.0
   license:
     name: Mozilla Public License 2.0 (MPL)
     url: https://www.mozilla.org/en-US/MPL/2.0/
 servers:
   - url: http://localhost:4484
-    description: Локальний сервер розробки
+    description: Локальний сервер для розробки
 tags:
   - name: Auth
-    description: Авторизація та аутентифікація користувачів
+    description: Авторизація та аутентифікація користувача
   - name: Stamps
     description: Взаємодія з каталогом марок
   - name: User
@@ -30,7 +31,7 @@ components:
       properties:
         name:
           type: string
-          example: 'Oleksandr'
+          example: 'Олександр'
         email:
           type: string
           example: 'oleksandr@example.com'
@@ -63,7 +64,7 @@ components:
           example: '66a88b5e9f8a371c646b9a84'
         name:
           type: string
-          example: 'Oleksandr'
+          example: 'Олександр'
         email:
           type: string
           example: 'oleksandr@example.com'
@@ -97,7 +98,7 @@ components:
       properties:
         message:
           type: string
-          example: 'Login successful'
+          example: 'Вхід успішний'
         data:
           type: object
           properties:
@@ -115,9 +116,9 @@ components:
         _id:
           type: string
           example: '66a88b5e9f8a371c646b9a81'
-        topic: # Змінено stamp_name на topic
+        stamp_name:
           type: string
-          example: 'Козацтво' # Оновлено приклад
+          example: 'Перша марка незалежної України'
         description:
           type: string
           example: 'Поштова марка, випущена у 1992 році.'
@@ -141,6 +142,68 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CreateStampRequest:
+      type: object
+      properties:
+        stamp_name:
+          type: string
+          example: 'Нова українська марка'
+        description:
+          type: string
+          example: 'Опис нової марки.'
+        country:
+          type: string
+          example: 'Україна'
+        year:
+          type: integer
+          example: 2024
+        price:
+          type: number
+          format: float
+          example: 50.00
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/new_stamp.png'
+      required:
+        - stamp_name
+        - country
+        - year
+        - price
+    UpdateStampRequest:
+      type: object
+      properties:
+        stamp_name:
+          type: string
+          example: 'Оновлена українська марка'
+        description:
+          type: string
+          example: 'Оновлений опис нової марки.'
+        country:
+          type: string
+          example: 'Україна'
+        year:
+          type: integer
+          example: 2024
+        price:
+          type: number
+          format: float
+          example: 55.00
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/updated_stamp.png'
+    StampResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Успішно виконано'
+        data:
+          $ref: '#/components/schemas/Stamp'
     SuccessResponse:
       type: object
       properties:
@@ -152,7 +215,7 @@ components:
           example: 'Успішно виконано'
         data:
           type: object
-          description: Дані можуть бути різними, залежно від запиту
+          description: Дані можуть відрізнятися залежно від запиту
     ErrorResponse:
       type: object
       properties:
@@ -161,13 +224,13 @@ components:
           example: 404
         message:
           type: string
-          example: 'Not Found'
+          example: 'Не знайдено'
         data:
           type: object
           properties:
             message:
               type: string
-              example: 'Resource not found.'
+              example: 'Ресурс не знайдено.'
     StampArrayResponse:
       type: object
       properties:
@@ -250,7 +313,7 @@ paths:
     post:
       tags:
         - Auth
-      summary: Реєстрація нового користувача
+      summary: Зареєструвати нового користувача
       operationId: registerUser
       security: []
       requestBody:
@@ -261,7 +324,7 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Успішна реєстрація, повертає дані про користувача
+          description: Успішна реєстрація, повертає дані користувача
           content:
             application/json:
               schema:
@@ -270,13 +333,13 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Некоректні дані у запиті
+          description: Некоректні дані в запиті. Тіло запиту містить недійсні або відсутні дані.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Користувач з таким email вже існує
+          description: Користувач з такою електронною поштою вже існує.
           content:
             application/json:
               schema:
@@ -296,13 +359,13 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Успішний вхід, повертає токени та дані користувача
+          description: Успішний вхід, повертає токени та дані користувача.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
-          description: Неправильний логін або пароль
+          description: Неправильна електронна пошта або пароль.
           content:
             application/json:
               schema:
@@ -317,18 +380,56 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Успішний вихід
+          description: Успішний вихід.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /stamps:
+    post:
+      tags:
+        - Stamps
+      summary: Створити нову марку (тільки для адміністратора)
+      operationId: createStamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStampRequest'
+      responses:
+        '201':
+          description: Марку успішно створено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampResponse'
+        '400':
+          description: Некоректне тіло запиту.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Несанкціонований доступ. Користувач не аутентифікований.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Заборонено. Тільки адміністратори можуть створювати марки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags:
         - Stamps
@@ -355,7 +456,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -366,38 +467,134 @@ paths:
             enum: ['asc', 'desc']
             default: 'desc'
           description: Напрямок сортування
-        - name: topic # Змінено stamp_name на topic
+        - name: stamp_name
           in: query
           required: false
           schema:
             type: string
-          description: Фільтрація за темою марки (часткове співпадіння) # Оновлено опис
+          description: Фільтрувати за назвою марки (частковий збіг)
         - name: country
           in: query
           required: false
           schema:
             type: string
-          description: Фільтрація за країною
+          description: Фільтрувати за країною
         - name: year
           in: query
           required: false
           schema:
             type: integer
-          description: Фільтрація за роком випуску
+          description: Фільтрувати за роком випуску
       responses:
         '200':
-          description: Список усіх марок з пагінацією
+          description: Список усіх марок з пагінацією.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '404':
-          description: Ресурси не знайдено
+          description: Не знайдено жодної марки, що відповідає критеріям.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /stamps/{stampId}:
+    put:
+      tags:
+        - Stamps
+      summary: Оновити марку за ID (тільки для адміністратора)
+      operationId: updateStampById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для оновлення
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStampRequest'
+      responses:
+        '200':
+          description: Марку успішно оновлено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampResponse'
+        '400':
+          description: Некоректний формат ID марки або тіло запиту.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Несанкціонований доступ. Користувач не аутентифікований.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Заборонено. Тільки адміністратори можуть оновлювати марки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Stamps
+      summary: Видалити марку за ID (тільки для адміністратора)
+      operationId: deleteStampById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID марки для видалення
+      responses:
+        '200':
+          description: Марку успішно видалено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Некоректний формат ID марки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Несанкціонований доступ. Користувач не аутентифікований.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Заборонено. Тільки адміністратори можуть видаляти марки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Марку не знайдено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags:
         - Stamps
@@ -413,7 +610,7 @@ paths:
           description: ID марки для пошуку
       responses:
         '200':
-          description: Інформація про марку
+          description: Інформація про марку.
           content:
             application/json:
               schema:
@@ -422,13 +619,13 @@ paths:
                   data:
                     $ref: '#/components/schemas/Stamp'
         '400':
-          description: Некоректний ID марки
+          description: Некоректний формат ID марки.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено
+          description: Марку не знайдено.
           content:
             application/json:
               schema:
@@ -461,7 +658,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -474,13 +671,13 @@ paths:
           description: Напрямок сортування
       responses:
         '200':
-          description: Список зібраних марок з пагінацією
+          description: Список зібраних марок з пагінацією.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
@@ -495,13 +692,13 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Загальна вартість колекції
+          description: Загальна вартість колекції.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValueResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
@@ -510,19 +707,19 @@ paths:
     get:
       tags:
         - User
-      summary: Отримати відсоток завершеності колекції користувача
+      summary: Отримати відсоток завершення колекції користувача
       operationId: getCollectedStampsPercentage
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Відсоток колекції
+          description: Відсоток завершення колекції.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PercentageResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
@@ -544,31 +741,31 @@ paths:
           description: ID марки для додавання
       responses:
         '200':
-          description: Марку додано до колекції
+          description: Марку додано до колекції.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Некоректний ID марки
+          description: Некоректний формат ID марки.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено
+          description: Марку не знайдено в каталозі.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Марка вже є в колекції
+          description: Марка вже є в колекції.
           content:
             application/json:
               schema:
@@ -589,19 +786,19 @@ paths:
           description: ID марки для видалення
       responses:
         '200':
-          description: Марку видалено з колекції
+          description: Марку видалено з колекції.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено в колекції
+          description: Марку не знайдено в колекції.
           content:
             application/json:
               schema:
@@ -634,7 +831,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -647,13 +844,13 @@ paths:
           description: Напрямок сортування
       responses:
         '200':
-          description: Список бажаних марок з пагінацією
+          description: Список бажаних марок з пагінацією.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
@@ -675,31 +872,31 @@ paths:
           description: ID марки для додавання
       responses:
         '200':
-          description: Марку додано до списку бажаних
+          description: Марку додано до списку бажаних марок.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Некоректний ID марки
+          description: Некоректний формат ID марки.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено
+          description: Марку не знайдено в каталозі.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Марка вже є в списку бажаних або в колекції
+          description: Марка вже є у списку бажаних або в колекції.
           content:
             application/json:
               schema:
@@ -720,19 +917,19 @@ paths:
           description: ID марки для видалення
       responses:
         '200':
-          description: Марку видалено зі списку бажаних
+          description: Марку видалено зі списку бажаних марок.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено в списку бажаних
+          description: Марку не знайдено у списку бажаних марок.
           content:
             application/json:
               schema:
@@ -741,7 +938,7 @@ paths:
     get:
       tags:
         - User
-      summary: Отримати список марок для обміну поточного користувача з пагінацією та сортуванням
+      summary: Отримати список марок поточного користувача для обміну з пагінацією та сортуванням
       operationId: getStampsForExchange
       security:
         - bearerAuth: []
@@ -765,7 +962,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
+            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -778,13 +975,13 @@ paths:
           description: Напрямок сортування
       responses:
         '200':
-          description: Список марок, готових до обміну, з пагінацією
+          description: Список марок для обміну з пагінацією.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
@@ -806,31 +1003,31 @@ paths:
           description: ID марки для додавання
       responses:
         '200':
-          description: Марку додано до списку для обміну
+          description: Марку додано до списку для обміну.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Некоректний ID або марки немає в колекції
+          description: Некоректний формат ID марки. Марка відсутня в колекції користувача.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено
+          description: Марку не знайдено в каталозі.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Марка вже є в списку на обмін
+          description: Марка вже є у списку для обміну.
           content:
             application/json:
               schema:
@@ -851,19 +1048,19 @@ paths:
           description: ID марки для видалення
       responses:
         '200':
-          description: Марку видалено зі списку для обміну
+          description: Марку видалено зі списку для обміну.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Неавторизований доступ
+          description: Несанкціонований доступ. Користувач не аутентифікований.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Марку не знайдено в списку для обміну
+          description: Марку не знайдено у списку для обміну.
           content:
             application/json:
               schema:

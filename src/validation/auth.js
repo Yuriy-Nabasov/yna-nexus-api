@@ -6,7 +6,9 @@ import Joi from 'joi';
 const emailSchema = Joi.string()
   .email({
     minDomainSegments: 2, // Наприклад, example.com
-    tlds: { allow: ['com', 'net', 'org', 'ua', 'info'] }, // Дозволені домени верхнього рівня
+    tlds: {
+      deny: ['ru', 'by'], // Заборонений домен верхнього рівня
+    },
   })
   .required()
   .messages({
@@ -16,13 +18,11 @@ const emailSchema = Joi.string()
   });
 
 const passwordSchema = Joi.string()
-  .pattern(
-    new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})'),
-  ) // Приклад складності пароля
+  .min(6) // Встановлюємо нову, простішу вимогу: мінімальна довжина пароля - 6 символів
   .required()
   .messages({
-    'string.pattern.base':
-      'Пароль має містити щонайменше 8 символів, включаючи великі та малі літери, цифри та спеціальні символи.',
+    // Оновлюємо повідомлення про помилку
+    'string.min': 'Пароль має містити щонайменше {{#limit}} символів.',
     'any.required': 'Поле "password" є обов\'язковим.',
     'string.empty': 'Поле "password" не може бути порожнім.',
   });

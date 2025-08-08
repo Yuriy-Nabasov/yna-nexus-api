@@ -4,7 +4,8 @@ info:
   description: |-
     API for the stamp collector's app "Your Nexus Archive".
     This API allows users to manage their collection, desired stamps list, and stamps for exchange.
-  version: 1.1.0
+    New administrative endpoints have been added to manage the stamp catalog.
+  version: 1.2.0
   license:
     name: Mozilla Public License 2.0 (MPL)
     url: https://www.mozilla.org/en-US/MPL/2.0/
@@ -141,6 +142,68 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CreateStampRequest:
+      type: object
+      properties:
+        stamp_name:
+          type: string
+          example: 'New Ukrainian Stamp'
+        description:
+          type: string
+          example: 'Description of the new stamp.'
+        country:
+          type: string
+          example: 'Ukraine'
+        year:
+          type: integer
+          example: 2024
+        price:
+          type: number
+          format: float
+          example: 50.00
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/new_stamp.png'
+      required:
+        - stamp_name
+        - country
+        - year
+        - price
+    UpdateStampRequest:
+      type: object
+      properties:
+        stamp_name:
+          type: string
+          example: 'Updated Ukrainian Stamp'
+        description:
+          type: string
+          example: 'Updated description of the new stamp.'
+        country:
+          type: string
+          example: 'Ukraine'
+        year:
+          type: integer
+          example: 2024
+        price:
+          type: number
+          format: float
+          example: 55.00
+        image_url:
+          type: string
+          format: uri
+          example: 'http://localhost:4484/uploads/updated_stamp.png'
+    StampResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: 'Successfully executed'
+        data:
+          $ref: '#/components/schemas/Stamp'
     SuccessResponse:
       type: object
       properties:
@@ -329,6 +392,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /stamps:
+    post:
+      tags:
+        - Stamps
+      summary: Create a new stamp (admin only)
+      operationId: createStamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStampRequest'
+      responses:
+        '201':
+          description: Stamp created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampResponse'
+        '400':
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access. The user is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Only admins can create stamps.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags:
         - Stamps
@@ -398,6 +499,102 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /stamps/{stampId}:
+    put:
+      tags:
+        - Stamps
+      summary: Update a stamp by ID (admin only)
+      operationId: updateStampById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStampRequest'
+      responses:
+        '200':
+          description: Stamp updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StampResponse'
+        '400':
+          description: Invalid stamp ID format or request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access. The user is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Only admins can update stamps.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Stamps
+      summary: Delete a stamp by ID (admin only)
+      operationId: deleteStampById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stampId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the stamp to delete
+      responses:
+        '200':
+          description: Stamp deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid stamp ID format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access. The user is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Only admins can delete stamps.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Stamp not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags:
         - Stamps

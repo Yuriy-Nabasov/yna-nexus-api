@@ -40,7 +40,17 @@ export const registerUser = async (payload) => {
     name,
     password: encryptedPassword,
   });
-  return user;
+  const newSessionData = createSession();
+  const session = await SessionsCollection.create({
+    userId: user._id,
+    ...newSessionData,
+  });
+
+  return {
+    user,
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  };
 };
 
 export const loginUser = async (payload) => {
@@ -59,7 +69,11 @@ export const loginUser = async (payload) => {
     userId: user._id,
     ...newSessionData,
   });
-  return session;
+  return {
+    user,
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  };
 };
 
 export const logoutUser = async (sessionId) => {
@@ -80,6 +94,10 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
     await SessionsCollection.deleteOne({ _id: sessionId });
     throw createHttpError(401, 'Refresh token expired. Please log in again.');
   }
+  const user = await UsersCollection.findById(session.userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found for this session');
+  }
   const newSessionData = createSession();
   const updatedSession = await SessionsCollection.findByIdAndUpdate(
     sessionId,
@@ -94,7 +112,11 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   if (!updatedSession) {
     throw createHttpError(401, 'Session not found after update attempt');
   }
-  return updatedSession;
+  return {
+    user,
+    accessToken: updatedSession.accessToken,
+    refreshToken: updatedSession.refreshToken,
+  };
 };
 
 export const requestResetPassword = async (email) => {
