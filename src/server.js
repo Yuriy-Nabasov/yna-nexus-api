@@ -23,6 +23,7 @@ export const startServer = () => {
   const allowedOrigins = [
     'http://localhost:4484',
     'https://yna-nexus-api.onrender.com',
+    'https://yna-nexus-frontend.vercel.app',
   ];
 
   app.use(
