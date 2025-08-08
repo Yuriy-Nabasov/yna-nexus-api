@@ -270,13 +270,13 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Invalid data in the request
+          description: Invalid data in the request. The request body contains invalid or missing data.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: A user with this email already exists
+          description: A user with this email already exists.
           content:
             application/json:
               schema:
@@ -296,13 +296,13 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Successful login, returns tokens and user data
+          description: Successful login, returns tokens and user data.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
-          description: Incorrect login or password
+          description: Incorrect email or password.
           content:
             application/json:
               schema:
@@ -317,13 +317,13 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Successful logout
+          description: Successful logout.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -386,13 +386,13 @@ paths:
           description: Filter by year of issue
       responses:
         '200':
-          description: List of all stamps with pagination
+          description: List of all stamps with pagination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '404':
-          description: Resources not found
+          description: No stamps found matching the criteria.
           content:
             application/json:
               schema:
@@ -413,7 +413,7 @@ paths:
           description: ID of the stamp to find
       responses:
         '200':
-          description: Stamp information
+          description: Stamp information.
           content:
             application/json:
               schema:
@@ -422,13 +422,13 @@ paths:
                   data:
                     $ref: '#/components/schemas/Stamp'
         '400':
-          description: Invalid stamp ID
+          description: Invalid stamp ID format.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found
+          description: Stamp not found.
           content:
             application/json:
               schema:
@@ -474,13 +474,13 @@ paths:
           description: Sort direction
       responses:
         '200':
-          description: List of collected stamps with pagination
+          description: List of collected stamps with pagination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -495,13 +495,13 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Total value of the collection
+          description: Total value of the collection.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValueResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -516,13 +516,13 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Collection percentage
+          description: Collection percentage.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PercentageResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -544,31 +544,31 @@ paths:
           description: ID of the stamp to add
       responses:
         '200':
-          description: Stamp added to the collection
+          description: Stamp added to the collection.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Invalid stamp ID
+          description: Invalid stamp ID format.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found
+          description: Stamp not found in the catalog.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Stamp is already in the collection
+          description: Stamp is already in the collection.
           content:
             application/json:
               schema:
@@ -589,19 +589,19 @@ paths:
           description: ID of the stamp to remove
       responses:
         '200':
-          description: Stamp removed from the collection
+          description: Stamp removed from the collection.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found in the collection
+          description: Stamp not found in the collection.
           content:
             application/json:
               schema:
@@ -647,13 +647,13 @@ paths:
           description: Sort direction
       responses:
         '200':
-          description: List of desired stamps with pagination
+          description: List of desired stamps with pagination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -675,31 +675,31 @@ paths:
           description: ID of the stamp to add
       responses:
         '200':
-          description: Stamp added to the desired stamps list
+          description: Stamp added to the desired stamps list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Invalid stamp ID
+          description: Invalid stamp ID format.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found
+          description: Stamp not found in the catalog.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Stamp is already in the desired list or collection
+          description: Stamp is already in the desired list or collection.
           content:
             application/json:
               schema:
@@ -720,19 +720,19 @@ paths:
           description: ID of the stamp to remove
       responses:
         '200':
-          description: Stamp removed from the desired stamps list
+          description: Stamp removed from the desired stamps list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found in the desired stamps list
+          description: Stamp not found in the desired stamps list.
           content:
             application/json:
               schema:
@@ -778,13 +778,13 @@ paths:
           description: Sort direction
       responses:
         '200':
-          description: List of stamps for exchange with pagination
+          description: List of stamps for exchange with pagination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedStampsResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
@@ -806,31 +806,31 @@ paths:
           description: ID of the stamp to add
       responses:
         '200':
-          description: Stamp added to the exchange list
+          description: Stamp added to the exchange list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '400':
-          description: Invalid ID or stamp not in collection
+          description: Invalid stamp ID format. The stamp is not in the user's collection.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found
+          description: Stamp not found in the catalog.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Stamp is already in the exchange list
+          description: Stamp is already in the exchange list.
           content:
             application/json:
               schema:
@@ -851,19 +851,19 @@ paths:
           description: ID of the stamp to remove
       responses:
         '200':
-          description: Stamp removed from the exchange list
+          description: Stamp removed from the exchange list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StampArrayResponse'
         '401':
-          description: Unauthorized access
+          description: Unauthorized access. The user is not authenticated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Stamp not found in the exchange list
+          description: Stamp not found in the exchange list.
           content:
             application/json:
               schema:

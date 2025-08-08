@@ -115,9 +115,9 @@ components:
         _id:
           type: string
           example: '66a88b5e9f8a371c646b9a81'
-        stamp_name:
+        topic: # Змінено stamp_name на topic
           type: string
-          example: 'Перша марка незалежної України'
+          example: 'Козацтво' # Оновлено приклад
         description:
           type: string
           example: 'Поштова марка, випущена у 1992 році.'
@@ -355,7 +355,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -366,12 +366,12 @@ paths:
             enum: ['asc', 'desc']
             default: 'desc'
           description: Напрямок сортування
-        - name: stamp_name
+        - name: topic # Змінено stamp_name на topic
           in: query
           required: false
           schema:
             type: string
-          description: Фільтрація за назвою марки (часткове співпадіння)
+          description: Фільтрація за темою марки (часткове співпадіння) # Оновлено опис
         - name: country
           in: query
           required: false
@@ -461,7 +461,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -634,7 +634,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder
@@ -765,7 +765,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['_id', 'stamp_name', 'country', 'year', 'price', 'createdAt']
+            enum: ['_id', 'topic', 'country', 'year', 'price', 'createdAt'] # Змінено stamp_name на topic
             default: 'createdAt'
           description: Поле для сортування
         - name: sortOrder

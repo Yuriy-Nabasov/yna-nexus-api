@@ -28,6 +28,14 @@ export const getAllStamps = async ({
     stampsQuery.where('price').equals(filter.price);
   }
 
+  // --- Нова логіка для фільтрації за темою марки ---
+  if (filter.topic) {
+    const searchString = filter.topic;
+    const regex = new RegExp(searchString, 'i');
+    stampsQuery.where('topic').regex(regex);
+  }
+  // --- Кінець нової логіки ---
+
   const [stampsCount, stamps] = await Promise.all([
     StampsCollection.find().merge(stampsQuery).countDocuments(),
     stampsQuery
@@ -86,19 +94,17 @@ export const getTotalStampsValue = async () => {
   const result = await StampsCollection.aggregate([
     {
       $group: {
-        _id: null, // Групуємо всі документи в одну групу
-        totalValue: { $sum: '$price' }, // Сумуємо значення поля 'price'
+        _id: null,
+        totalValue: { $sum: '$price' },
       },
     },
     {
       $project: {
-        _id: 0, // Виключаємо поле _id з результату
-        totalValue: 1, // Включаємо поле totalValue
+        _id: 0,
+        totalValue: 1,
       },
     },
   ]);
 
-  // Якщо марок немає, result буде порожнім масивом.
-  // Повертаємо 0, якщо результат порожній, або знайдене значення.
   return result.length > 0 ? result[0].totalValue : 0;
 };
