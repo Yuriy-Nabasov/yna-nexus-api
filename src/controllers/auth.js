@@ -9,7 +9,7 @@ import {
   requestResetPassword,
 } from '../services/auth.js';
 import { ONE_DAY } from '../constants/index.js';
-import createHttpError from 'http-errors';
+// import createHttpError from 'http-errors';
 import { generateAuthUrl } from '../utils/googleOAuth2.js';
 import { loginOrSignupWithGoogle } from '../services/auth.js';
 
@@ -28,32 +28,63 @@ const setupSession = (res, session) => {
   });
 };
 
-export const registerUserController = async (req, res) => {
-  const { user, accessToken, refreshToken } = await registerUser(req.body);
+// export const registerUserController = async (req, res) => {
+//   const { user, accessToken, refreshToken } = await registerUser(req.body);
 
-  setupSession(res, { refreshToken, _id: user._id });
+//   setupSession(res, { refreshToken, _id: user._id });
+
+//   res.status(201).json({
+//     status: 201,
+//     message: 'Successfully registered a user and logged in!',
+//     data: {
+//       user,
+//       accessToken,
+//     },
+//   });
+// };
+
+export const registerUserController = async (req, res) => {
+  const user = await registerUser(req.body);
 
   res.status(201).json({
     status: 201,
-    message: 'Successfully registered a user and logged in!',
-    data: {
-      user,
-      accessToken,
-    },
+    message: 'Successfully registered a user!',
+    data: user,
   });
 };
 
-export const loginUserController = async (req, res) => {
-  const { user, accessToken, refreshToken } = await loginUser(req.body);
+// export const loginUserController = async (req, res) => {
+//   const { user, accessToken, refreshToken } = await loginUser(req.body);
 
-  setupSession(res, { refreshToken, _id: user._id });
+//   setupSession(res, { refreshToken, _id: user._id });
+
+//   res.json({
+//     status: 200,
+//     message: 'Successfully logged in an user!',
+//     data: {
+//       user,
+//       accessToken,
+//     },
+//   });
+// };
+
+export const loginUserController = async (req, res) => {
+  const session = await loginUser(req.body);
+
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expires: new Date(Date.now() + ONE_DAY),
+  });
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expires: new Date(Date.now() + ONE_DAY),
+  });
 
   res.json({
     status: 200,
     message: 'Successfully logged in an user!',
     data: {
-      user,
-      accessToken,
+      accessToken: session.accessToken,
     },
   });
 };
@@ -69,24 +100,41 @@ export const logoutUserController = async (req, res) => {
   res.status(204).send();
 };
 
-export const refreshUserSessionController = async (req, res, next) => {
-  if (!req.cookies.sessionId || !req.cookies.refreshToken) {
-    return next(createHttpError(401, 'Session cookies not found'));
-  }
+// export const refreshUserSessionController = async (req, res, next) => {
+//   if (!req.cookies.sessionId || !req.cookies.refreshToken) {
+//     return next(createHttpError(401, 'Session cookies not found'));
+//   }
 
-  const { user, accessToken, refreshToken } = await refreshUsersSession({
+//   const { user, accessToken, refreshToken } = await refreshUsersSession({
+//     sessionId: req.cookies.sessionId,
+//     refreshToken: req.cookies.refreshToken,
+//   });
+
+//   setupSession(res, { refreshToken, _id: user._id });
+
+//   res.json({
+//     status: 200,
+//     message: 'Successfully refreshed a session!',
+//     data: {
+//       user,
+//       accessToken,
+//     },
+//   });
+// };
+
+export const refreshUserSessionController = async (req, res) => {
+  const session = await refreshUsersSession({
     sessionId: req.cookies.sessionId,
     refreshToken: req.cookies.refreshToken,
   });
 
-  setupSession(res, { refreshToken, _id: user._id });
+  setupSession(res, session);
 
   res.json({
     status: 200,
     message: 'Successfully refreshed a session!',
     data: {
-      user,
-      accessToken,
+      accessToken: session.accessToken,
     },
   });
 };
