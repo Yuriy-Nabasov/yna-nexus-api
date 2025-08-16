@@ -124,7 +124,7 @@ export const logoutUser = async (sessionId) => {
 };
 
 export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
-  let cleanSessionId = sessionId;
+  // let cleanSessionId = sessionId;
 
   // Очищаємо sessionId, якщо він має формат "j:"...
   // if (sessionId.startsWith('j%3A%22')) {
@@ -138,12 +138,13 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   // }
 
   // Виправлено: перевіряємо на розкодований рядок 'j:"', а не на закодований.
-  if (sessionId.startsWith('j:"') && sessionId.endsWith('"')) {
-    cleanSessionId = sessionId.substring(3, sessionId.length - 1);
-  }
+  // if (sessionId.startsWith('j:"') && sessionId.endsWith('"')) {
+  //   cleanSessionId = sessionId.substring(3, sessionId.length - 1);
+  // }
 
   const session = await SessionsCollection.findOne({
-    _id: cleanSessionId,
+    // _id: cleanSessionId,
+    _id: sessionId,
     refreshToken,
   });
 
@@ -155,7 +156,8 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
     new Date() > new Date(session.refreshTokenValidUntil);
 
   if (isRefreshTokenExpired) {
-    await SessionsCollection.deleteOne({ _id: cleanSessionId });
+    // await SessionsCollection.deleteOne({ _id: cleanSessionId });
+    await SessionsCollection.deleteOne({ _id: sessionId });
     throw createHttpError(401, 'Refresh token expired. Please log in again.');
   }
 
@@ -166,7 +168,8 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
 
   const newSessionData = createSession();
   const updatedSession = await SessionsCollection.findByIdAndUpdate(
-    cleanSessionId,
+    // cleanSessionId,
+    sessionId, // Використовуємо оригінальний sessionId
     {
       accessToken: newSessionData.accessToken,
       refreshToken: newSessionData.refreshToken,
