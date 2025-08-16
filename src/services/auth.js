@@ -127,14 +127,19 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   let cleanSessionId = sessionId;
 
   // Очищаємо sessionId, якщо він має формат "j:"...
-  if (sessionId.startsWith('j%3A%22')) {
-    const decodedSessionId = decodeURIComponent(sessionId);
-    if (decodedSessionId.startsWith('j:"') && decodedSessionId.endsWith('"')) {
-      cleanSessionId = decodedSessionId.substring(
-        3,
-        decodedSessionId.length - 1,
-      );
-    }
+  // if (sessionId.startsWith('j%3A%22')) {
+  //   const decodedSessionId = decodeURIComponent(sessionId);
+  //   if (decodedSessionId.startsWith('j:"') && decodedSessionId.endsWith('"')) {
+  //     cleanSessionId = decodedSessionId.substring(
+  //       3,
+  //       decodedSessionId.length - 1,
+  //     );
+  //   }
+  // }
+
+  // Виправлено: перевіряємо на розкодований рядок 'j:"', а не на закодований.
+  if (sessionId.startsWith('j:"') && sessionId.endsWith('"')) {
+    cleanSessionId = sessionId.substring(3, sessionId.length - 1);
   }
 
   const session = await SessionsCollection.findOne({
