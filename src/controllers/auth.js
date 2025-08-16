@@ -18,13 +18,13 @@ const setupSession = (res, session) => {
     httpOnly: true,
     expires: new Date(Date.now() + ONE_DAY),
     secure: process.env.NODE_ENV === 'production', // Використовувати тільки через HTTPS у продакшені
-    sameSite: 'Lax', // Захист від CSRF
+    sameSite: 'None',
   });
   res.cookie('sessionId', session._id, {
     httpOnly: true,
     expires: new Date(Date.now() + ONE_DAY),
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Lax',
+    sameSite: 'None',
   });
 };
 
