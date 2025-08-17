@@ -13,11 +13,17 @@ export const authenticate = async (req, res, next) => {
   }
 
   const bearer = authHeader.split(' ')[0];
-  const token = authHeader.split(' ')[1];
+  // const token = authHeader.split(' ')[1];
+  let token = authHeader.split(' ')[1];
 
   if (bearer !== 'Bearer' || !token) {
     next(createHttpError(401, 'Auth header should be of type Bearer'));
     return;
+  }
+
+  // Видаляємо зайві лапки, які можуть бути в токені, отриманому з фронтенду
+  if (token.startsWith('"') && token.endsWith('"')) {
+    token = token.slice(1, -1);
   }
 
   const session = await SessionsCollection.findOne({ accessToken: token });
