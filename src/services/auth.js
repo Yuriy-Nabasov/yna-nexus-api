@@ -28,6 +28,15 @@ const createSession = () => {
   };
 };
 
+// Функція для очищення sessionId, отриманого з кукі.
+// Вона видаляє префікс і лапки, додані cookie-parser.
+const cleanSessionId = (sessionId) => {
+  if (sessionId && sessionId.startsWith('j:"') && sessionId.endsWith('"')) {
+    return sessionId.substring(3, sessionId.length - 1);
+  }
+  return sessionId;
+};
+
 export const registerUser = async (payload) => {
   const userExists = await UsersCollection.findOne({ email: payload.email });
   if (userExists) {
@@ -120,10 +129,13 @@ export const loginUser = async (payload) => {
 // };
 
 export const logoutUser = async (sessionId) => {
-  await SessionsCollection.deleteOne({ _id: sessionId });
+  const cleanedId = cleanSessionId(sessionId);
+  // await SessionsCollection.deleteOne({ _id: sessionId });
+  await SessionsCollection.deleteOne({ _id: cleanedId });
 };
 
 export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
+  const cleanedId = cleanSessionId(sessionId);
   // let cleanSessionId = sessionId;
 
   // Очищаємо sessionId, якщо він має формат "j:"...
@@ -144,7 +156,8 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
 
   const session = await SessionsCollection.findOne({
     // _id: cleanSessionId,
-    _id: sessionId,
+    // _id: sessionId,
+    _id: cleanedId,
     refreshToken,
   });
 
@@ -157,7 +170,8 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
 
   if (isRefreshTokenExpired) {
     // await SessionsCollection.deleteOne({ _id: cleanSessionId });
-    await SessionsCollection.deleteOne({ _id: sessionId });
+    // await SessionsCollection.deleteOne({ _id: sessionId });
+    await SessionsCollection.deleteOne({ _id: cleanedId });
     throw createHttpError(401, 'Refresh token expired. Please log in again.');
   }
 
@@ -169,7 +183,8 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   const newSessionData = createSession();
   const updatedSession = await SessionsCollection.findByIdAndUpdate(
     // cleanSessionId,
-    sessionId, // Використовуємо оригінальний sessionId
+    // sessionId, // Використовуємо оригінальний sessionId
+    cleanedId,
     {
       accessToken: newSessionData.accessToken,
       refreshToken: newSessionData.refreshToken,
